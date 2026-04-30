@@ -1,0 +1,1 @@
+rootProject.name = "LSP_server_logo"
