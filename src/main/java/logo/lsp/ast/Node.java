@@ -18,6 +18,13 @@ public abstract class Node {
             super(token);
             this.statements = statements;
         }
+
+        @Override
+        public String toString() {
+            return "Program{" +
+                    "statements=" + statements +
+                    '}';
+        }
     }
 
     // TO name [:param ...] \n body \n END
@@ -218,4 +225,6 @@ public abstract class Node {
             this.elements = elements;
         }
     }
+
+
 }

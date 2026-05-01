@@ -1,4 +1,4 @@
-package logo.lsp.ast;
+package logo.lsp.parser;
 
 import logo.lsp.lexer.Token;
 
