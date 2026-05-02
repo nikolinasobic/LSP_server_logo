@@ -11,6 +11,7 @@ public class LogoParser {
 
     private final Map<String, Token> procedureDefinitions = new LinkedHashMap<>();
     private final Map<String, Integer> procedureArities = new LinkedHashMap<>();
+    private final Map<String, Token> variableDefinitions = new LinkedHashMap<>();
 
     // for "did you mean?" suggestions (all built-in commands)
     private static final List<String> BUILTIN_NAMES = List.of(
@@ -54,7 +55,7 @@ public class LogoParser {
         }
         Token eof = peek();
         return new ParseResult(new Node.Program(stmts, eof), errors,
-                Collections.unmodifiableMap(procedureDefinitions));
+                Collections.unmodifiableMap(procedureDefinitions), Collections.unmodifiableMap(variableDefinitions));
     }
 
     private Node parseStatement() {
@@ -193,7 +194,11 @@ public class LogoParser {
 
         List<String> params = new ArrayList<>();
         while (check(TokenType.VARIABLE)) {
-            params.add(advance().value.toLowerCase());
+            Token paramToken = advance();
+            String paramName = paramToken.value.toLowerCase();
+            params.add(paramName);
+            variableDefinitions.putIfAbsent(paramName, paramToken);
+
         }
         procedureArities.put(nameToken.value.toLowerCase(), params.size());
         skipNewlines();
@@ -228,17 +233,22 @@ public class LogoParser {
     private Node.MakeStatement parseMake() {
         Token makeToken = consume(TokenType.MAKE);
         String varName;
+        Token varNameToken;
         if (check(TokenType.STRING)) {
-            varName = advance().value.toLowerCase();
+            varNameToken = advance();
+            varName = varNameToken.value.toLowerCase();
         } else if (check(TokenType.IDENTIFIER)) {
-            varName = advance().value.toLowerCase();
+            varNameToken = advance();
+            varName = varNameToken.value.toLowerCase();
         } else {
             throw new ParseException(
                     ParseError.error("Expected variable name after MAKE", peek()));
         }
+        variableDefinitions.putIfAbsent(varName, varNameToken);
         Node value = parseExpr();
         return new Node.MakeStatement(makeToken, varName, value);
     }
+
 
     // REPEAT n [ body ]
 

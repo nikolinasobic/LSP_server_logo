@@ -57,37 +57,72 @@ public class LogoTextDocumentService implements TextDocumentService{
     }
 
     @Override
+    public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> declaration(
+            DeclarationParams params) {
+        return resolveDefinition(
+                params.getTextDocument().getUri(),
+                params.getPosition());
+    }
+
+    @Override
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(
             DefinitionParams params) {
+        return resolveDefinition(
+                params.getTextDocument().getUri(),
+                params.getPosition());
+    }
 
-        String uri = params.getTextDocument().getUri();
+
+    private CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> resolveDefinition(
+            String uri, Position pos) {
+
         ParseResult result = store.get(uri);
         if (result == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        Position pos = params.getPosition();
         String source = store.getSource(uri);
 
+        boolean onVariable = cursorOnVariable(source, pos.getLine(), pos.getCharacter());
         String word = wordAt(source, pos.getLine(), pos.getCharacter());
+
         if (word == null || word.isEmpty())
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
         String lower = word.toLowerCase();
 
-        var defToken = result.procedureDefinitions.get(lower);
-        if (defToken != null) {
-            Range range = new Range(
-                    new Position(defToken.line, defToken.startCol),
-                    new Position(defToken.line, defToken.endCol));
+        // variable reference
+        if (onVariable || result.variableDefinitions.containsKey(lower)) {
+            var varToken = result.variableDefinitions.get(lower);
+            if (varToken != null) {
+                return CompletableFuture.completedFuture(
+                        Either.forLeft(List.of(tokenLocation(uri, varToken))));
+            }
+        }
 
-            Location loc = new Location(uri, range);
-
+        // procedure reference
+        var procToken = result.procedureDefinitions.get(lower);
+        if (procToken != null) {
             return CompletableFuture.completedFuture(
-                    Either.forLeft(List.of(loc))
-            );
+                    Either.forLeft(List.of(tokenLocation(uri, procToken))));
         }
 
         return CompletableFuture.completedFuture(Either.forLeft(List.of()));
+    }
+
+    private Location tokenLocation(String uri, logo.lsp.lexer.Token token) {
+        Range range = new Range(
+                new Position(token.line, token.startCol),
+                new Position(token.line, token.endCol));
+        return new Location(uri, range);
+    }
+
+    private boolean cursorOnVariable(String source, int line, int character) {
+        String[] lines = source.split("\n", -1);
+        if (line >= lines.length) return false;
+        String ln = lines[line];
+        int start = character;
+        while (start > 0 && isIdentChar(ln.charAt(start - 1))) start--;
+        return start > 0 && ln.charAt(start - 1) == ':';
     }
 
 
