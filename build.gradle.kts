@@ -26,3 +26,15 @@ application {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "logo.lsp.server.LogoLanguageServerLauncher"
+    }
+    from(
+        configurations.runtimeClasspath.get().filter { it.isFile }.map { zipTree(it) }
+    )
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/*.EC")
+    exclude("META-INF/MANIFEST.MF")
+}
