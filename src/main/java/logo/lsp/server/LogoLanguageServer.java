@@ -17,42 +17,42 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
     private int exitCode = 0;
 
     @Override
-    public void connect(LanguageClient client) {
+    public void connect(final LanguageClient client) {
         this.client = client;
         textDocumentService.setClient(client);
     }
 
     private static final SemanticTokensLegend SEMANTIC_TOKENS_LEGEND = new SemanticTokensLegend(
             List.of(
-                    "keyword",    // 0
-                    "function",   // 1
-                    "variable",   // 2
-                    "number",     // 3
-                    "string",     // 4
-                    "comment"     // 5
+                    LspConstants.TOKEN_TYPE_KEYWORD,   // 0
+                    LspConstants.TOKEN_TYPE_FUNCTION,  // 1
+                    LspConstants.TOKEN_TYPE_VARIABLE,  // 2
+                    LspConstants.TOKEN_TYPE_NUMBER,    // 3
+                    LspConstants.TOKEN_TYPE_STRING     // 4
             ),
-            List.of() // no modifiers
+            List.of(LspConstants.TOKEN_MODIFIER_DECLARATION) // index 0 → bit 1
     );
 
     private static final SemanticTokensWithRegistrationOptions SEMANTIC_TOKEN_OPTS =
-            new SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND);
+            buildSemanticTokenOpts();
 
-    static {
-        SEMANTIC_TOKEN_OPTS.setFull(true);
+    private static SemanticTokensWithRegistrationOptions buildSemanticTokenOpts() {
+        final var opts = new SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND);
+        opts.setFull(true);
+        return opts;
     }
 
-    private static final ServerInfo SERVER_INFO = new ServerInfo("Logo Language Server", "1.0.0");
+    private static final ServerInfo SERVER_INFO =
+            new ServerInfo(LspConstants.SERVER_NAME, LspConstants.SERVER_VERSION);
 
     @Override
-    public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        ServerCapabilities caps = new ServerCapabilities();
-
+    public CompletableFuture<InitializeResult> initialize(final InitializeParams params) {
+        final var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
         caps.setDefinitionProvider(true);
         caps.setHoverProvider(true);
         caps.setSemanticTokensProvider(SEMANTIC_TOKEN_OPTS);
-
-        InitializeResult result = new InitializeResult(caps);
+        final var result = new InitializeResult(caps);
         result.setServerInfo(SERVER_INFO);
         return CompletableFuture.completedFuture(result);
     }
@@ -77,5 +77,4 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
     public WorkspaceService getWorkspaceService() {
         return workspaceService;
     }
-
 }

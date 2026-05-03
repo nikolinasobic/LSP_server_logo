@@ -1,29 +1,12 @@
 package logo.lsp.lexer;
 
-public class Token {
-    public final TokenType type;
-    public final String value;
+public record Token(TokenType type, String value, int line, int startCol, int endCol) {
 
-    public final int line;
-    public final int startCol;
-    public int endCol;
-
-    public Token(TokenType type, String value, int line, int startCol, int endCol) {
-        this.type = type;
-        this.value = value;
-        this.line = line;
-        this.startCol = startCol;
-        this.endCol = endCol;
-    }
+    private static final String TO_STRING_FMT =
+            "Token{type=%s, value='%s', line=%d, startCol=%d, endCol=%d}";
 
     @Override
     public String toString() {
-        return "Token{" +
-                "type=" + type +
-                ", value='" + value + '\'' +
-                ", line=" + line +
-                ", startCol=" + startCol +
-                ", endCol=" + endCol +
-                '}';
+        return String.format(TO_STRING_FMT, type, value, line, startCol, endCol);
     }
 }

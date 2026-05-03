@@ -1,7 +1,9 @@
 package logo.lsp.server;
 
+import logo.lsp.ast.Node;
 import logo.lsp.capabilities.LogoHoverDocs;
 import logo.lsp.capabilities.SemanticTokenEncoder;
+import logo.lsp.lexer.Token;
 import logo.lsp.parser.ParseError;
 import logo.lsp.parser.ParseResult;
 import org.eclipse.lsp4j.*;
@@ -13,79 +15,85 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+public class LogoTextDocumentService implements TextDocumentService {
 
-public class LogoTextDocumentService implements TextDocumentService{
+    private static final String NEWLINE        = "\n";
+    private static final String PROC_SIG_START = "```logo\nto ";
+    private static final String PROC_SIG_END   = "\n...\nend\n```";
+    private static final String PROC_PARAM_SEP = " :";
+    private static final String HOVER_PROC_FMT = "**%s** *(user-defined procedure)*  \n%s";
+    private static final String HOVER_VAR_FMT  = "**:%s** *(variable)*";
+
+    private record WordSpan(String text, int start, int end, boolean isVariable) {}
+
     private final DocumentStore store;
     private LanguageClient client;
 
-    public LogoTextDocumentService(DocumentStore store){
+    public LogoTextDocumentService(final DocumentStore store) {
         this.store = store;
     }
 
-    public void setClient(LanguageClient client){
+    public void setClient(final LanguageClient client) {
         this.client = client;
     }
 
     @Override
-    public void didOpen(DidOpenTextDocumentParams didOpenTextDocumentParams) {
-        String uri = didOpenTextDocumentParams.getTextDocument().getUri();
-        String text = didOpenTextDocumentParams.getTextDocument().getText();
-        ParseResult result = store.update(uri, text);
+    public void didOpen(final DidOpenTextDocumentParams params) {
+        final var uri    = params.getTextDocument().getUri();
+        final var text   = params.getTextDocument().getText();
+        final var result = store.update(uri, text);
         publishDiagnostics(uri, result);
     }
 
     @Override
-    public void didChange(DidChangeTextDocumentParams didChangeTextDocumentParams) {
-        String uri = didChangeTextDocumentParams.getTextDocument().getUri();
-        String text = didChangeTextDocumentParams.getContentChanges().get(didChangeTextDocumentParams.getContentChanges().size()-1).getText();
-        ParseResult result = store.update(uri, text);
+    public void didChange(final DidChangeTextDocumentParams params) {
+        final var uri     = params.getTextDocument().getUri();
+        final var changes = params.getContentChanges();
+        final var text    = changes.get(changes.size() - 1).getText();
+        final var result  = store.update(uri, text);
         publishDiagnostics(uri, result);
     }
 
     @Override
-    public void didClose(DidCloseTextDocumentParams didCloseTextDocumentParams) {
-        String uri = didCloseTextDocumentParams.getTextDocument().getUri();
+    public void didClose(final DidCloseTextDocumentParams params) {
+        final var uri = params.getTextDocument().getUri();
         store.remove(uri);
-
-        if(client != null){
+        if (client != null) {
             client.publishDiagnostics(new PublishDiagnosticsParams(uri, new ArrayList<>()));
         }
     }
 
     @Override
-    public void didSave(DidSaveTextDocumentParams params) {
-        //we re-parse on every change already
+    public void didSave(final DidSaveTextDocumentParams params) {
+        // re-parsed on every change
     }
 
     @Override
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(
-            DefinitionParams params) {
+            final DefinitionParams params) {
         return resolveDefinition(
                 params.getTextDocument().getUri(),
                 params.getPosition());
     }
 
-
     private CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> resolveDefinition(
-            String uri, Position pos) {
+            final String uri, final Position pos) {
 
-        ParseResult result = store.get(uri);
-        if (result == null)
+        final var state = store.getState(uri);
+        if (state == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        String source = store.getSource(uri);
+        final var result = state.result();
+        final var span   = spanAt(state.source(), pos.getLine(), pos.getCharacter());
 
-        boolean onVariable = cursorOnVariable(source, pos.getLine(), pos.getCharacter());
-        String word = wordAt(source, pos.getLine(), pos.getCharacter());
-
-        if (word == null || word.isEmpty())
+        if (span == null || span.text().isEmpty())
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        String lower = word.toLowerCase();
+        final var lower = span.text().toLowerCase();
 
         // variable reference
-        if (onVariable || result.variableDefinitions.containsKey(lower)) {
-            var varToken = result.variableDefinitions.get(lower);
+        if (span.isVariable() || result.variableDefinitions.containsKey(lower)) {
+            final var varToken = result.variableDefinitions.get(lower);
             if (varToken != null) {
                 return CompletableFuture.completedFuture(
                         Either.forLeft(List.of(tokenLocation(uri, varToken))));
@@ -93,7 +101,7 @@ public class LogoTextDocumentService implements TextDocumentService{
         }
 
         // procedure reference
-        var procToken = result.procedureDefinitions.get(lower);
+        final var procToken = result.procedureDefinitions.get(lower);
         if (procToken != null) {
             return CompletableFuture.completedFuture(
                     Either.forLeft(List.of(tokenLocation(uri, procToken))));
@@ -103,43 +111,44 @@ public class LogoTextDocumentService implements TextDocumentService{
     }
 
     @Override
-    public CompletableFuture<Hover> hover(HoverParams params) {
-        String uri    = params.getTextDocument().getUri();
-        String source = store.getSource(uri);
-        ParseResult result = store.get(uri);
+    public CompletableFuture<Hover> hover(final HoverParams params) {
+        final var uri   = params.getTextDocument().getUri();
+        final var state = store.getState(uri);
+        final var pos   = params.getPosition();
+        final var span  = spanAt(state != null ? state.source() : null, pos.getLine(), pos.getCharacter());
 
-        Position pos = params.getPosition();
-        String word = wordAt(source, pos.getLine(), pos.getCharacter());
-        if (word == null || word.isEmpty())
+        if (span == null || span.text().isEmpty())
             return CompletableFuture.completedFuture(null);
 
-        String lower = word.toLowerCase();
+        final var lower = span.text().toLowerCase();
+        final var range = new Range(new Position(pos.getLine(), span.start()),
+                                    new Position(pos.getLine(), span.end()));
 
         // built-in command documentation
-        String doc = LogoHoverDocs.get(lower);
+        final var doc = LogoHoverDocs.get(lower);
         if (doc != null) {
-            Hover hover = new Hover(new MarkupContent("markdown", doc));
-            hover.setRange(wordRange(source, pos.getLine(), pos.getCharacter()));
+            final var hover = new Hover(new MarkupContent(LspConstants.MARKUP_MARKDOWN, doc));
+            hover.setRange(range);
             return CompletableFuture.completedFuture(hover);
         }
 
-        // user-defined procedure (show its signature)
-        if (result != null) {
-            var procToken = result.procedureDefinitions.get(lower);
+        if (state != null) {
+            final var result = state.result();
+            // user-defined procedure
+            final var procToken = result.procedureDefinitions.get(lower);
             if (procToken != null) {
-                String sig = buildProcedureSignature(lower, result);
-                Hover hover = new Hover(new MarkupContent("markdown",
-                        "**" + lower + "** *(user-defined procedure)*  \n" + sig));
-                hover.setRange(wordRange(source, pos.getLine(), pos.getCharacter()));
+                final var sig   = buildProcedureSignature(lower, result);
+                final var hover = new Hover(new MarkupContent(LspConstants.MARKUP_MARKDOWN,
+                        String.format(HOVER_PROC_FMT, lower, sig)));
+                hover.setRange(range);
                 return CompletableFuture.completedFuture(hover);
             }
 
-            // variable  (show its name and that it is a variable)
-            boolean onVar = cursorOnVariable(source, pos.getLine(), pos.getCharacter());
-            if (onVar && result.variableDefinitions.containsKey(lower)) {
-                Hover hover = new Hover(new MarkupContent("markdown",
-                        "**:" + lower + "** *(variable)*"));
-                hover.setRange(wordRange(source, pos.getLine(), pos.getCharacter()));
+            // variable
+            if (span.isVariable() && result.variableDefinitions.containsKey(lower)) {
+                final var hover = new Hover(new MarkupContent(LspConstants.MARKUP_MARKDOWN,
+                        String.format(HOVER_VAR_FMT, lower)));
+                hover.setRange(range);
                 return CompletableFuture.completedFuture(hover);
             }
         }
@@ -147,83 +156,62 @@ public class LogoTextDocumentService implements TextDocumentService{
         return CompletableFuture.completedFuture(null);
     }
 
-    private String buildProcedureSignature(String name, ParseResult result) {
-        // Walk the AST to find the ProcedureDef node for this name
-        for (logo.lsp.ast.Node stmt : result.program.statements) {
-            if (stmt instanceof logo.lsp.ast.Node.ProcedureDef def
+    private String buildProcedureSignature(final String name, final ParseResult result) {
+        for (final Node stmt : result.program.statements) {
+            if (stmt instanceof Node.ProcedureDef def
                     && def.name.equals(name)) {
-                StringBuilder sb = new StringBuilder("```logo\nto ").append(name);
-                for (String param : def.params) sb.append(" :").append(param);
-                sb.append("\n...\nend\n```");
+                final var sb = new StringBuilder(PROC_SIG_START).append(name);
+                for (final String param : def.params) sb.append(PROC_PARAM_SEP).append(param);
+                sb.append(PROC_SIG_END);
                 return sb.toString();
             }
         }
-        return "```logo\nto " + name + "\n...\nend\n```";
+        return PROC_SIG_START + name + PROC_SIG_END;
     }
 
-    private Range wordRange(String source, int line, int character) {
-        String[] lines = source.split("\n", -1);
-        if (line >= lines.length) return new Range(new Position(line, character), new Position(line, character));
-        String ln = lines[line];
-        int start = character;
-        while (start > 0 && isIdentChar(ln.charAt(start - 1))) start--;
-        int end = character;
-        while (end < ln.length() && isIdentChar(ln.charAt(end))) end++;
-        return new Range(new Position(line, start), new Position(line, end));
-    }
-
-
-    private Location tokenLocation(String uri, logo.lsp.lexer.Token token) {
-        Range range = new Range(
-                new Position(token.line, token.startCol),
-                new Position(token.line, token.endCol));
+    private Location tokenLocation(final String uri, final Token token) {
+        final var range = new Range(
+                new Position(token.line(), token.startCol()),
+                new Position(token.line(), token.endCol()));
         return new Location(uri, range);
     }
 
-    private boolean cursorOnVariable(String source, int line, int character) {
-        String[] lines = source.split("\n", -1);
-        if (line >= lines.length) return false;
-        String ln = lines[line];
-        int start = character;
-        while (start > 0 && isIdentChar(ln.charAt(start - 1))) start--;
-        return start > 0 && ln.charAt(start - 1) == ':';
-    }
-
-
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(
-            SemanticTokensParams params) {
-        String uri = params.getTextDocument().getUri();
-        String source = store.getSource(uri);
-        List<Integer> data = SemanticTokenEncoder.encode(source);
+            final SemanticTokensParams params) {
+        final var uri   = params.getTextDocument().getUri();
+        final var state = store.getState(uri);
+        final var data  = state != null
+                ? SemanticTokenEncoder.encode(state.result().tokens)
+                : List.<Integer>of();
         return CompletableFuture.completedFuture(new SemanticTokens(data));
     }
 
-    private String wordAt(String source, int line, int character) {
-        String[] lines = source.split("\n", -1);
+    private WordSpan spanAt(final String source, final int line, final int character) {
+        if (source == null) return null;
+        final var lines = source.split(NEWLINE, -1);
         if (line >= lines.length) return null;
-        String ln = lines[line];
+        final String ln = lines[line];
         if (character > ln.length()) return null;
-
         int start = character;
         while (start > 0 && isIdentChar(ln.charAt(start - 1))) start--;
         int end = character;
         while (end < ln.length() && isIdentChar(ln.charAt(end))) end++;
-
-        return ln.substring(start, end);
+        final boolean isVariable = start > 0 && ln.charAt(start - 1) == ':';
+        return new WordSpan(ln.substring(start, end), start, end, isVariable);
     }
 
-    private boolean isIdentChar(char c) {
+    private boolean isIdentChar(final char c) {
         return Character.isLetterOrDigit(c) || c == '_' || c == '?' || c == '!';
     }
 
-    private void publishDiagnostics(String uri, ParseResult result) {
+    private void publishDiagnostics(final String uri, final ParseResult result) {
         if (client == null)
             return;
 
-        List<Diagnostic> diags = new ArrayList<>();
-        for (ParseError err : result.errors) {
-            Diagnostic d = new Diagnostic();
+        final var diags = new ArrayList<Diagnostic>();
+        for (final ParseError err : result.errors) {
+            final var d = new Diagnostic();
             d.setMessage(err.message);
             d.setSeverity(err.severity == ParseError.Severity.ERROR
                     ? DiagnosticSeverity.Error
@@ -231,10 +219,9 @@ public class LogoTextDocumentService implements TextDocumentService{
             d.setRange(new Range(
                     new Position(err.line, err.startCol),
                     new Position(err.line, err.endCol)));
-            d.setSource("logo-lsp");
+            d.setSource(LspConstants.DIAGNOSTIC_SOURCE);
             diags.add(d);
         }
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
     }
-
 }
