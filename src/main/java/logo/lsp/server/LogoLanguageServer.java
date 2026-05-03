@@ -28,17 +28,18 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
                     LspConstants.TOKEN_TYPE_FUNCTION,  // 1
                     LspConstants.TOKEN_TYPE_VARIABLE,  // 2
                     LspConstants.TOKEN_TYPE_NUMBER,    // 3
-                    LspConstants.TOKEN_TYPE_STRING,    // 4
-                    LspConstants.TOKEN_TYPE_COMMENT    // 5
+                    LspConstants.TOKEN_TYPE_STRING     // 4
             ),
             List.of(LspConstants.TOKEN_MODIFIER_DECLARATION) // index 0 → bit 1
     );
 
     private static final SemanticTokensWithRegistrationOptions SEMANTIC_TOKEN_OPTS =
-            new SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND);
+            buildSemanticTokenOpts();
 
-    static {
-        SEMANTIC_TOKEN_OPTS.setFull(true);
+    private static SemanticTokensWithRegistrationOptions buildSemanticTokenOpts() {
+        final var opts = new SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND);
+        opts.setFull(true);
+        return opts;
     }
 
     private static final ServerInfo SERVER_INFO =

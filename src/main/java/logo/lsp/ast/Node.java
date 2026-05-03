@@ -41,7 +41,7 @@ public abstract class Node {
                             final Token endToken) {
             super(toToken);
             this.nameToken = nameToken;
-            this.name      = nameToken.value.toLowerCase();
+            this.name      = nameToken.value().toLowerCase();
             this.params    = params;
             this.body      = body;
             this.endToken  = endToken;
@@ -56,7 +56,7 @@ public abstract class Node {
 
         public CommandCall(final Token nameToken, final List<Node> args) {
             super(nameToken);
-            this.name = nameToken.value.toLowerCase();
+            this.name = nameToken.value().toLowerCase();
             this.args = args;
         }
     }
@@ -136,17 +136,6 @@ public abstract class Node {
         }
     }
 
-    // Block [statements]
-
-    public static class Block extends Node {
-        public final List<Node> statements;
-
-        public Block(final Token lbracket, final List<Node> statements) {
-            super(lbracket);
-            this.statements = statements;
-        }
-    }
-
     // binary expression
 
     public static class BinaryExpr extends Node {
@@ -156,7 +145,7 @@ public abstract class Node {
 
         public BinaryExpr(final Token opToken, final Node left, final Node right) {
             super(opToken);
-            this.operator = opToken.value;
+            this.operator = opToken.value();
             this.left     = left;
             this.right    = right;
         }
@@ -170,7 +159,7 @@ public abstract class Node {
 
         public UnaryExpr(final Token opToken, final Node operand) {
             super(opToken);
-            this.operator = opToken.value;
+            this.operator = opToken.value();
             this.operand  = operand;
         }
     }
@@ -182,7 +171,7 @@ public abstract class Node {
 
         public NumberLiteral(final Token token) {
             super(token);
-            this.value = Double.parseDouble(token.value);
+            this.value = Double.parseDouble(token.value());
         }
     }
 
@@ -191,7 +180,7 @@ public abstract class Node {
 
         public WordLiteral(final Token token) {
             super(token);
-            this.value = token.value;
+            this.value = token.value();
         }
     }
 
@@ -200,7 +189,7 @@ public abstract class Node {
 
         public BooleanLiteral(final Token token) {
             super(token);
-            this.value = token.value.equalsIgnoreCase("true");
+            this.value = token.value().equalsIgnoreCase("true");
         }
     }
 
@@ -211,7 +200,7 @@ public abstract class Node {
 
         public VariableRef(final Token token) {
             super(token);
-            this.name = token.value.toLowerCase();
+            this.name = token.value().toLowerCase();
         }
     }
 

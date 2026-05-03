@@ -5,7 +5,7 @@ import java.util.Map;
 public class LogoHoverDocs {
     private LogoHoverDocs() {}
 
-    public static final Map<String, String> DOCS = Map.ofEntries(
+    private static final Map<String, String> DOCS = Map.ofEntries(
 
             // ── Motion ────────────────────────────────────────────────────────────
 

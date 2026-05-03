@@ -1,7 +1,9 @@
 package logo.lsp.server;
 
+import logo.lsp.ast.Node;
 import logo.lsp.capabilities.LogoHoverDocs;
 import logo.lsp.capabilities.SemanticTokenEncoder;
+import logo.lsp.lexer.Token;
 import logo.lsp.parser.ParseError;
 import logo.lsp.parser.ParseResult;
 import org.eclipse.lsp4j.*;
@@ -77,12 +79,12 @@ public class LogoTextDocumentService implements TextDocumentService {
     private CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> resolveDefinition(
             final String uri, final Position pos) {
 
-        final var result = store.get(uri);
-        if (result == null)
+        final var state = store.getState(uri);
+        if (state == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        final var source = store.getSource(uri);
-        final var span   = spanAt(source, pos.getLine(), pos.getCharacter());
+        final var result = state.result();
+        final var span   = spanAt(state.source(), pos.getLine(), pos.getCharacter());
 
         if (span == null || span.text().isEmpty())
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
@@ -110,11 +112,10 @@ public class LogoTextDocumentService implements TextDocumentService {
 
     @Override
     public CompletableFuture<Hover> hover(final HoverParams params) {
-        final var uri    = params.getTextDocument().getUri();
-        final var source = store.getSource(uri);
-        final var result = store.get(uri);
-        final var pos    = params.getPosition();
-        final var span   = spanAt(source, pos.getLine(), pos.getCharacter());
+        final var uri   = params.getTextDocument().getUri();
+        final var state = store.getState(uri);
+        final var pos   = params.getPosition();
+        final var span  = spanAt(state != null ? state.source() : null, pos.getLine(), pos.getCharacter());
 
         if (span == null || span.text().isEmpty())
             return CompletableFuture.completedFuture(null);
@@ -131,7 +132,8 @@ public class LogoTextDocumentService implements TextDocumentService {
             return CompletableFuture.completedFuture(hover);
         }
 
-        if (result != null) {
+        if (state != null) {
+            final var result = state.result();
             // user-defined procedure
             final var procToken = result.procedureDefinitions.get(lower);
             if (procToken != null) {
@@ -155,8 +157,8 @@ public class LogoTextDocumentService implements TextDocumentService {
     }
 
     private String buildProcedureSignature(final String name, final ParseResult result) {
-        for (final logo.lsp.ast.Node stmt : result.program.statements) {
-            if (stmt instanceof logo.lsp.ast.Node.ProcedureDef def
+        for (final Node stmt : result.program.statements) {
+            if (stmt instanceof Node.ProcedureDef def
                     && def.name.equals(name)) {
                 final var sb = new StringBuilder(PROC_SIG_START).append(name);
                 for (final String param : def.params) sb.append(PROC_PARAM_SEP).append(param);
@@ -167,19 +169,21 @@ public class LogoTextDocumentService implements TextDocumentService {
         return PROC_SIG_START + name + PROC_SIG_END;
     }
 
-    private Location tokenLocation(final String uri, final logo.lsp.lexer.Token token) {
+    private Location tokenLocation(final String uri, final Token token) {
         final var range = new Range(
-                new Position(token.line, token.startCol),
-                new Position(token.line, token.endCol));
+                new Position(token.line(), token.startCol()),
+                new Position(token.line(), token.endCol()));
         return new Location(uri, range);
     }
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(
             final SemanticTokensParams params) {
-        final var uri    = params.getTextDocument().getUri();
-        final var source = store.getSource(uri);
-        final var data   = SemanticTokenEncoder.encode(source);
+        final var uri   = params.getTextDocument().getUri();
+        final var state = store.getState(uri);
+        final var data  = state != null
+                ? SemanticTokenEncoder.encode(state.result().tokens)
+                : List.<Integer>of();
         return CompletableFuture.completedFuture(new SemanticTokens(data));
     }
 

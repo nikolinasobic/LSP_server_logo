@@ -1,6 +1,5 @@
 package logo.lsp.capabilities;
 
-import logo.lsp.lexer.LogoLexer;
 import logo.lsp.lexer.Token;
 import logo.lsp.lexer.TokenType;
 
@@ -17,10 +16,7 @@ public class SemanticTokenEncoder {
     private static final int NO_MODIFIER  = 0;
     private static final int DECLARATION  = 1; // modifier index 0 → bit 1<<0
 
-    public static List<Integer> encode(final String source) {
-        final var lexer  = new LogoLexer(source);
-        final var tokens = lexer.tokenize();
-
+    public static List<Integer> encode(final List<Token> tokens) {
         final var data = new ArrayList<Integer>();
         int prevLine = 0;
         int prevCol  = 0;
@@ -28,27 +24,27 @@ public class SemanticTokenEncoder {
 
         for (final Token tok : tokens) {
             // "varname immediately after MAKE is a variable name, not a string literal
-            final int typeIdx = (tok.type == TokenType.STRING && prevSignificantType == TokenType.MAKE)
+            final int typeIdx = (tok.type() == TokenType.STRING && prevSignificantType == TokenType.MAKE)
                     ? VARIABLE
-                    : mapTokenType(tok.type);
+                    : mapTokenType(tok.type());
 
             // identifier immediately after TO is a procedure declaration name
-            final int modifier = (tok.type == TokenType.IDENTIFIER && prevSignificantType == TokenType.TO)
+            final int modifier = (tok.type() == TokenType.IDENTIFIER && prevSignificantType == TokenType.TO)
                     ? DECLARATION
                     : NO_MODIFIER;
 
             // track the last non-whitespace token so the context checks above span any newlines
-            if (tok.type != TokenType.NEWLINE && tok.type != TokenType.EOF) {
-                prevSignificantType = tok.type;
+            if (tok.type() != TokenType.NEWLINE && tok.type() != TokenType.EOF) {
+                prevSignificantType = tok.type();
             }
 
             if (typeIdx < 0) continue;
 
-            final int length = tok.endCol - tok.startCol;
+            final int length = tok.endCol() - tok.startCol();
             if (length <= 0) continue;
 
-            final int deltaLine = tok.line - prevLine;
-            final int deltaCol  = deltaLine == 0 ? tok.startCol - prevCol : tok.startCol;
+            final int deltaLine = tok.line() - prevLine;
+            final int deltaCol  = deltaLine == 0 ? tok.startCol() - prevCol : tok.startCol();
 
             data.add(deltaLine);
             data.add(deltaCol);
@@ -56,8 +52,8 @@ public class SemanticTokenEncoder {
             data.add(typeIdx);
             data.add(modifier);
 
-            prevLine = tok.line;
-            prevCol  = tok.startCol;
+            prevLine = tok.line();
+            prevCol  = tok.startCol();
         }
 
         return data;

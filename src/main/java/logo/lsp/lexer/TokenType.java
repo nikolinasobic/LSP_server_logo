@@ -3,7 +3,6 @@ package logo.lsp.lexer;
 public enum TokenType {
     NUMBER,
     STRING,
-    WORD,
     BOOLEAN,
 
     IDENTIFIER,

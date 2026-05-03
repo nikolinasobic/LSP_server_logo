@@ -8,7 +8,7 @@ import java.util.*;
 
 public class LogoParser {
 
-    // Error message format strings
+    // error message format strings
     private static final String ERR_UNEXPECTED_TOKEN_FMT       = "Unexpected token '%s': expected a command or procedure name";
     private static final String ERR_UNKNOWN_CMD_SUGGESTION_FMT = "Unknown command '%s'. Did you mean '%s'?";
     private static final String ERR_UNKNOWN_CMD_FMT            = "Unknown command '%s'";
@@ -18,7 +18,7 @@ public class LogoParser {
     private static final String ERR_EXPECTED_TYPE_FMT          = "Expected %s but got '%s'";
     private static final String ERR_UNEXPECTED_EXPR_TOKEN_FMT  = "Unexpected token '%s' in expression";
 
-    // Fixed error messages
+    // fixed error messages
     private static final String ERR_EXPECTED_PROC_NAME      = "Expected procedure name after TO";
     private static final String ERR_EXPECTED_VAR_NAME_MAKE  = "Expected variable name after MAKE";
     private static final String ERR_EXPECTED_VAR_NAME_LOCAL = "Expected variable name after LOCAL";
@@ -30,10 +30,10 @@ public class LogoParser {
     private static final String ERR_EXPECTED_RPAREN        = "Expected ')'";
     private static final String ERR_MISSING_RBRACKET       = "Missing ']'";
 
-    // Magic value representing an arbitrarily large repeat count (used by FOREVER)
+    // max value for forever
     private static final String FOREVER_COUNT_VALUE = "999999";
 
-    // for "did you mean?" suggestions (all built-in commands)
+    // for did you mean? suggestions (all built-in commands)
     private static final List<String> BUILTIN_NAMES = List.of(
             "forward","fd","back","bk","left","lt","right","rt",
             "setx","sety","setxy","setpos","setspeed","home",
@@ -79,6 +79,7 @@ public class LogoParser {
         }
         final var eof = peek();
         return new ParseResult(new Node.Program(stmts, eof), errors,
+                Collections.unmodifiableList(tokens),
                 Collections.unmodifiableMap(procedureDefinitions),
                 Collections.unmodifiableMap(variableDefinitions));
     }
@@ -86,7 +87,7 @@ public class LogoParser {
     private Node parseStatement() {
         final Token t = peek();
 
-        return switch (t.type) {
+        return switch (t.type()) {
             case TO           -> parseProcedureDef();
             case MAKE         -> parseMake();
             case LOCAL        -> parseLocal();
@@ -109,24 +110,24 @@ public class LogoParser {
 
             // any other built-in command token
             default -> {
-                if (isCommandToken(t.type)) {
+                if (isCommandToken(t.type())) {
                     yield parseBuiltinCall();
                 }
                 throw new ParseException(ParseError.error(
-                        String.format(ERR_UNEXPECTED_TOKEN_FMT, t.value), t));
+                        String.format(ERR_UNEXPECTED_TOKEN_FMT, t.value()), t));
             }
         };
     }
 
     private Node parseUserOrUnknownCall() {
         final var nameToken = advance();
-        final var name      = nameToken.value.toLowerCase();
+        final var name      = nameToken.value().toLowerCase();
 
         if (!procedureDefinitions.containsKey(name)) {
             final var suggestion = closestBuiltin(name);
             final var msg = suggestion != null
-                    ? String.format(ERR_UNKNOWN_CMD_SUGGESTION_FMT, nameToken.value, suggestion)
-                    : String.format(ERR_UNKNOWN_CMD_FMT, nameToken.value);
+                    ? String.format(ERR_UNKNOWN_CMD_SUGGESTION_FMT, nameToken.value(), suggestion)
+                    : String.format(ERR_UNKNOWN_CMD_FMT, nameToken.value());
             errors.add(ParseError.error(msg, nameToken));
             consumeRestOfLine();
             return new Node.CommandCall(nameToken, Collections.emptyList());
@@ -137,7 +138,7 @@ public class LogoParser {
         for (int i = 0; i < arity; i++) {
             if (atEnd() || check(TokenType.NEWLINE) || check(TokenType.RBRACKET)) {
                 errors.add(ParseError.error(
-                        String.format(ERR_PROCEDURE_ARITY_FMT, nameToken.value, arity, i),
+                        String.format(ERR_PROCEDURE_ARITY_FMT, nameToken.value(), arity, i),
                         nameToken));
                 break;
             }
@@ -154,13 +155,13 @@ public class LogoParser {
 
     private Node.CommandCall parseBuiltinCall() {
         final var nameToken = advance();
-        final int arity     = inferArity(nameToken.type);
+        final int arity     = inferArity(nameToken.type());
         final var args      = new ArrayList<Node>();
         for (int i = 0; i < arity; i++) {
             if (atEnd() || check(TokenType.NEWLINE) || check(TokenType.RBRACKET)
                     || check(TokenType.EOF)) {
                 errors.add(ParseError.error(
-                        String.format(ERR_COMMAND_ARITY_FMT, nameToken.value, arity, i),
+                        String.format(ERR_COMMAND_ARITY_FMT, nameToken.value(), arity, i),
                         nameToken));
                 break;
             }
@@ -209,16 +210,16 @@ public class LogoParser {
         final var toToken   = consume(TokenType.TO);
         skipNewlines();
         final var nameToken = expectProcedureName(ERR_EXPECTED_PROC_NAME);
-        procedureDefinitions.put(nameToken.value.toLowerCase(), nameToken);
+        procedureDefinitions.put(nameToken.value().toLowerCase(), nameToken);
 
         final var params = new ArrayList<String>();
         while (check(TokenType.VARIABLE)) {
             final var paramToken = advance();
-            final var paramName  = paramToken.value.toLowerCase();
+            final var paramName  = paramToken.value().toLowerCase();
             params.add(paramName);
             variableDefinitions.putIfAbsent(paramName, paramToken);
         }
-        procedureArities.put(nameToken.value.toLowerCase(), params.size());
+        procedureArities.put(nameToken.value().toLowerCase(), params.size());
         skipNewlines();
 
         final var body = new ArrayList<Node>();
@@ -240,7 +241,7 @@ public class LogoParser {
             endToken = advance();
         } else {
             errors.add(ParseError.error(
-                    String.format(ERR_MISSING_END_FMT, nameToken.value), nameToken));
+                    String.format(ERR_MISSING_END_FMT, nameToken.value()), nameToken));
             endToken = null;
         }
 
@@ -250,19 +251,13 @@ public class LogoParser {
     // MAKE "varname expr
 
     private Node.MakeStatement parseMake() {
-        final var makeToken = consume(TokenType.MAKE);
+        final var makeToken    = consume(TokenType.MAKE);
         if (!check(TokenType.STRING) && !check(TokenType.IDENTIFIER)) {
             throw new ParseException(ParseError.error(ERR_EXPECTED_VAR_NAME_MAKE, peek()));
         }
         final var varNameToken = advance();
-        final var varName      = varNameToken.value.toLowerCase();
-
-        final Token defToken = varNameToken.type == TokenType.STRING
-                ? new Token(TokenType.IDENTIFIER, varNameToken.value,
-                            varNameToken.line, varNameToken.startCol + 1, varNameToken.endCol)
-                : varNameToken;
-        variableDefinitions.putIfAbsent(varName, defToken);
-        final var value = parseExpr();
+        final var varName      = registerVariable(varNameToken);
+        final var value        = parseExpr();
         return new Node.MakeStatement(makeToken, varName, value);
     }
 
@@ -282,7 +277,7 @@ public class LogoParser {
         final var body     = parseBlock();
         final var infinity = new Node.NumberLiteral(
                 new Token(TokenType.NUMBER, FOREVER_COUNT_VALUE,
-                        token.line, token.startCol, token.endCol));
+                        token.line(), token.startCol(), token.endCol()));
         return new Node.RepeatStatement(token, infinity, body);
     }
 
@@ -306,7 +301,9 @@ public class LogoParser {
         if (!check(TokenType.VARIABLE) && !check(TokenType.IDENTIFIER)) {
             throw new ParseException(ParseError.error(ERR_EXPECTED_VAR_NAME_FOR, peek()));
         }
-        final var varName = advance().value.toLowerCase();
+        final var varToken = advance();
+        final var varName  = varToken.value().toLowerCase();
+        variableDefinitions.putIfAbsent(varName, varToken);
         final var start   = parseExpr();
         final var end     = parseExpr();
         final var step    = check(TokenType.RBRACKET) ? null : parseExpr();
@@ -352,7 +349,7 @@ public class LogoParser {
         final var token    = advance();
         final var body     = parseBlock();
         final var condTok  = new Token(TokenType.BOOLEAN, isFalse ? "false" : "true",
-                token.line, token.startCol, token.endCol);
+                token.line(), token.startCol(), token.endCol());
         return new Node.IfStatement(token, new Node.BooleanLiteral(condTok), body, Collections.emptyList());
     }
 
@@ -363,14 +360,19 @@ public class LogoParser {
         if (!check(TokenType.STRING) && !check(TokenType.IDENTIFIER)) {
             throw new ParseException(ParseError.error(ERR_EXPECTED_VAR_NAME_LOCAL, peek()));
         }
-        final var varNameToken = advance();
-        final var varName      = varNameToken.value.toLowerCase();
-        final Token defToken   = varNameToken.type == TokenType.STRING
-                ? new Token(TokenType.IDENTIFIER, varNameToken.value,
-                            varNameToken.line, varNameToken.startCol + 1, varNameToken.endCol)
+        registerVariable(advance());
+        return new Node.CommandCall(token, Collections.emptyList());
+    }
+
+
+    private String registerVariable(final Token varNameToken) {
+        final var varName = varNameToken.value().toLowerCase();
+        final Token defToken = varNameToken.type() == TokenType.STRING
+                ? new Token(TokenType.IDENTIFIER, varNameToken.value(),
+                            varNameToken.line(), varNameToken.startCol() + 1, varNameToken.endCol())
                 : varNameToken;
         variableDefinitions.putIfAbsent(varName, defToken);
-        return new Node.CommandCall(token, Collections.emptyList());
+        return varName;
     }
 
     // arity table for built-in commands
@@ -423,7 +425,7 @@ public class LogoParser {
         return stmts;
     }
 
-    // Expression parsing (precedence climbing)
+    // Expression parsing
 
     private Node parseExpr() {
         return parseComparison();
@@ -469,7 +471,7 @@ public class LogoParser {
 
     private Node parsePrimary() {
         final Token t = peek();
-        return switch (t.type) {
+        return switch (t.type()) {
             case NUMBER   -> new Node.NumberLiteral(advance());
             case STRING   -> new Node.WordLiteral(advance());
             case BOOLEAN  -> new Node.BooleanLiteral(advance());
@@ -492,11 +494,11 @@ public class LogoParser {
             }
             case IDENTIFIER -> new Node.CommandCall(advance(), Collections.emptyList());
             default -> {
-                if (isCommandToken(t.type)) {
+                if (isCommandToken(t.type())) {
                     yield parseBuiltinCall();
                 }
                 throw new ParseException(ParseError.error(
-                        String.format(ERR_UNEXPECTED_EXPR_TOKEN_FMT, t.value), t));
+                        String.format(ERR_UNEXPECTED_EXPR_TOKEN_FMT, t.value()), t));
             }
         };
     }
@@ -524,7 +526,7 @@ public class LogoParser {
     }
 
     private boolean atEnd() {
-        return peek().type == TokenType.EOF;
+        return peek().type() == TokenType.EOF;
     }
 
     private Token peek() {
@@ -533,16 +535,16 @@ public class LogoParser {
 
     private Token advance() {
         final Token t = tokens.get(pos);
-        if (t.type != TokenType.EOF) pos++;
+        if (t.type() != TokenType.EOF) pos++;
         return t;
     }
 
     private boolean check(final TokenType type) {
-        return peek().type == type;
+        return peek().type() == type;
     }
 
     private boolean checkAny(final TokenType... types) {
-        final TokenType cur = peek().type;
+        final TokenType cur = peek().type();
         for (final TokenType t : types) if (cur == t) return true;
         return false;
     }
@@ -550,7 +552,7 @@ public class LogoParser {
     private Token consume(final TokenType type) {
         if (!check(type)) {
             throw new ParseException(ParseError.error(
-                    String.format(ERR_EXPECTED_TYPE_FMT, type, peek().value), peek()));
+                    String.format(ERR_EXPECTED_TYPE_FMT, type, peek().value()), peek()));
         }
         return advance();
     }
@@ -559,20 +561,20 @@ public class LogoParser {
         if (!check(type)) {
             errors.add(ParseError.error(msg, peek()));
             final var cur = peek();
-            return new Token(type, "", cur.line, cur.startCol, cur.startCol);
+            return new Token(type, "", cur.line(), cur.startCol(), cur.startCol());
         }
         return advance();
     }
 
     private Token expectProcedureName(final String msg) {
         final Token t = peek();
-        if (t.type == TokenType.IDENTIFIER) return advance();
+        if (t.type() == TokenType.IDENTIFIER) return advance();
         throw new ParseException(ParseError.error(msg, t));
     }
 
     private void synchronize() {
         while (!atEnd()) {
-            final TokenType t = peek().type;
+            final TokenType t = peek().type();
             if (t == TokenType.NEWLINE || t == TokenType.END || t == TokenType.TO) {
                 skipNewlines();
                 return;

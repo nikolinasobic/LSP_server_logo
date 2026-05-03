@@ -9,29 +9,24 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DocumentStore {
 
-    private final Map<String, ParseResult> results = new ConcurrentHashMap<>();
-    private final Map<String, String>      sources = new ConcurrentHashMap<>();
+    record DocumentState(String source, ParseResult result) {}
+
+    private final Map<String, DocumentState> documents = new ConcurrentHashMap<>();
 
     public ParseResult update(final String uri, final String text) {
-        sources.put(uri, text);
         final var lexer  = new LogoLexer(text);
         final var tokens = lexer.tokenize();
         final var parser = new LogoParser(tokens);
         final var result = parser.parse();
-        results.put(uri, result);
+        documents.put(uri, new DocumentState(text, result));
         return result;
     }
 
-    public ParseResult get(final String uri) {
-        return results.get(uri);
-    }
-
-    public String getSource(final String uri) {
-        return sources.getOrDefault(uri, "");
+    public DocumentState getState(final String uri) {
+        return documents.get(uri);
     }
 
     public void remove(final String uri) {
-        results.remove(uri);
-        sources.remove(uri);
+        documents.remove(uri);
     }
 }

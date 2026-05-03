@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class LogoLexer {
 
-    // Token value constants for single-character and special tokens
+    // token value constants for single-character and special tokens
     private static final String TOK_NEWLINE  = "\n";
     private static final String TOK_LBRACKET = "[";
     private static final String TOK_RBRACKET = "]";
@@ -227,8 +227,7 @@ public class LogoLexer {
     }
 
     private void readWordLiteral() {
-        final int startPos = pos;
-        final int col      = startPos - lineStart;
+        final int col = pos - lineStart;
         advance(); // consume "
         final var sb = new StringBuilder();
         while (!atEnd() && !Character.isWhitespace(peek()) && peek() != ']' && peek() != ')') {
@@ -250,8 +249,7 @@ public class LogoLexer {
     }
 
     private void readVariable() {
-        final int startPos = pos;
-        final int col      = startPos - lineStart;
+        final int col = pos - lineStart;
         advance(); // consume :
         final var sb = new StringBuilder();
         while (!atEnd() && isIdentPart(peek())) {

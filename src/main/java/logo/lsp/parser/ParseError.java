@@ -21,14 +21,7 @@ public class ParseError {
     }
 
     public static ParseError error(final String msg, final Token t) {
-        return new ParseError(Severity.ERROR, msg, t.line, t.startCol, t.endCol);
+        return new ParseError(Severity.ERROR, msg, t.line(), t.startCol(), t.endCol());
     }
 
-    public static ParseError error(final String msg, final int line, final int startCol, final int endCol) {
-        return new ParseError(Severity.ERROR, msg, line, startCol, endCol);
-    }
-
-    public static ParseError warning(final String msg, final Token t) {
-        return new ParseError(Severity.WARNING, msg, t.line, t.startCol, t.endCol);
-    }
 }
