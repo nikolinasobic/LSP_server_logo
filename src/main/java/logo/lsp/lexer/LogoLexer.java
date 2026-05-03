@@ -166,60 +166,38 @@ public class LogoLexer {
 
             final char c = peek();
 
-            if (c == '\n') {
-                final int col = pos - lineStart;
-                tokens.add(new Token(TokenType.NEWLINE, TOK_NEWLINE, line, col, col + 1));
-                advance();
-                line++;
-                lineStart = pos;
-            } else if (c == '"') {
-                readWordLiteral();
-            } else if (c == ':') {
-                readVariable();
-            } else if (Character.isDigit(c) || (c == '-' && isDigitAhead())) {
-                readNumber();
-            } else if (c == '[') {
-                emit(TokenType.LBRACKET, TOK_LBRACKET);
-                advance();
-            } else if (c == ']') {
-                emit(TokenType.RBRACKET, TOK_RBRACKET);
-                advance();
-            } else if (c == '(') {
-                emit(TokenType.LPAREN, TOK_LPAREN);
-                advance();
-            } else if (c == ')') {
-                emit(TokenType.RPAREN, TOK_RPAREN);
-                advance();
-            } else if (c == '+') {
-                emit(TokenType.PLUS, TOK_PLUS);
-                advance();
-            } else if (c == '-') {
-                emit(TokenType.MINUS, TOK_MINUS);
-                advance();
-            } else if (c == '*') {
-                emit(TokenType.STAR, TOK_STAR);
-                advance();
-            } else if (c == '/') {
-                emit(TokenType.SLASH, TOK_SLASH);
-                advance();
-            } else if (c == '=') {
-                emit(TokenType.EQUAL_SIGN, TOK_EQUAL);
-                advance();
-            } else if (c == '<') {
-                emit(TokenType.LESS, TOK_LESS);
-                advance();
-            } else if (c == '>') {
-                emit(TokenType.GREATER, TOK_GREATER);
-                advance();
-            } else if (c == '^') {
-                emit(TokenType.CARET, TOK_CARET);
-                advance();
-            } else if (isIdentStart(c)) {
-                readIdentifierOrKeyword();
-            } else {
-                final int col = pos - lineStart;
-                tokens.add(new Token(TokenType.UNKNOWN, String.valueOf(c), line, col, col + 1));
-                advance();
+            switch (c) {
+                case '\n' -> {
+                    final int col = pos - lineStart;
+                    tokens.add(new Token(TokenType.NEWLINE, TOK_NEWLINE, line, col, col + 1));
+                    advance();
+                    line++;
+                    lineStart = pos;
+                }
+                case '"'  -> readWordLiteral();
+                case ':'  -> readVariable();
+                case '['  -> { emit(TokenType.LBRACKET,   TOK_LBRACKET); advance(); }
+                case ']'  -> { emit(TokenType.RBRACKET,   TOK_RBRACKET); advance(); }
+                case '('  -> { emit(TokenType.LPAREN,     TOK_LPAREN);   advance(); }
+                case ')'  -> { emit(TokenType.RPAREN,     TOK_RPAREN);   advance(); }
+                case '+'  -> { emit(TokenType.PLUS,       TOK_PLUS);     advance(); }
+                case '-'  -> { if (isDigitAhead()) readNumber();
+                               else { emit(TokenType.MINUS, TOK_MINUS);  advance(); } }
+                case '*'  -> { emit(TokenType.STAR,       TOK_STAR);     advance(); }
+                case '/'  -> { emit(TokenType.SLASH,      TOK_SLASH);    advance(); }
+                case '='  -> { emit(TokenType.EQUAL_SIGN, TOK_EQUAL);    advance(); }
+                case '<'  -> { emit(TokenType.LESS,       TOK_LESS);     advance(); }
+                case '>'  -> { emit(TokenType.GREATER,    TOK_GREATER);  advance(); }
+                case '^'  -> { emit(TokenType.CARET,      TOK_CARET);    advance(); }
+                default   -> {
+                    if (Character.isDigit(c))    readNumber();
+                    else if (isIdentStart(c))    readIdentifierOrKeyword();
+                    else {
+                        final int col = pos - lineStart;
+                        tokens.add(new Token(TokenType.UNKNOWN, String.valueOf(c), line, col, col + 1));
+                        advance();
+                    }
+                }
             }
         }
         tokens.add(new Token(TokenType.EOF, TOK_EOF, line, pos - lineStart, pos - lineStart));
