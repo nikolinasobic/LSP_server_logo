@@ -62,21 +62,29 @@ public class SemanticTokenEncoder {
     private static int mapTokenType(final TokenType t) {
         return switch (t) {
             case FORWARD, BACK, LEFT, RIGHT,
+                 SETX, SETY, SETXY, SETPOS, SETHEADING, SETSPEED,
+                 HOME, ARC, ELLIPSE,
+                 POS, XCOR, YCOR, HEADING, TOWARDS,
+                 WRAP, WINDOW, FENCE,
                  PENUP, PENDOWN, PENCOLOR, SETPENCOLOR, SETPENSIZE,
-                 CLEAN, CLEARSCREEN, HOME, FILL, LABEL,
-                 SETX, SETY, SETXY, SETPOS, SETSPEED,
+                 CLEAN, CLEARSCREEN, FILL, FILLED, LABEL, SETLABELHEIGHT, CHANGESHAPE,
                  HIDETURTLE, SHOWTURTLE,
-                 MAKE, LOCAL, THING,
-                 PRINT, SHOW, TYPE,
+                 SHOWNP, LABELSIZE, PENDOWNP, PENSIZE,
+                 MAKE, LOCAL, THING, NAME, LOCALMAKE,
+                 PRINT, SHOW, TYPE, READWORD, READLIST,
                  IF, IFELSE, TEST, IFTRUE, IFFALSE,
                  REPEAT, FOREVER, WHILE, UNTIL, FOR,
-                 TO, END, OUTPUT, STOP,
+                 DOTIMES, DO_WHILE, DO_UNTIL, WAIT, BYE, REPCOUNT,
+                 TO, END, OUTPUT, STOP, DEFINE, DEF,
                  RUN, APPLY,
                  LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM, COUNT,
-                 SENTENCE, FPUT, LPUT,
+                 SENTENCE, FPUT, LPUT, PICK,
                  AND, OR, NOT,
                  SUM, DIFFERENCE, PRODUCT, QUOTIENT, REMAINDER, MODULO, POWER, SQRT, ABS, MINUS,
-                 EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP, BOOLEAN
+                 RANDOM,
+                 EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP,
+                 WORDP, LISTP, ARRAY, ARRAYP, NUMBERP, EMPTYP, BEFOREP, SUBSTRINGP,
+                 BOOLEAN
                     -> KEYWORD;
             case IDENTIFIER -> FUNCTION;
             case VARIABLE   -> VARIABLE;

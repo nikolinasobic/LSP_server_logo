@@ -40,8 +40,33 @@ public class LogoLexer {
         KEYWORDS.put("sety",         TokenType.SETY);
         KEYWORDS.put("setxy",        TokenType.SETXY);
         KEYWORDS.put("setpos",       TokenType.SETPOS);
+        KEYWORDS.put("setheading",   TokenType.SETHEADING);
+        KEYWORDS.put("seth",         TokenType.SETHEADING);
+        KEYWORDS.put("sh",           TokenType.SETHEADING);
         KEYWORDS.put("setspeed",     TokenType.SETSPEED);
         KEYWORDS.put("home",         TokenType.HOME);
+        KEYWORDS.put("arc",          TokenType.ARC);
+        KEYWORDS.put("ellipse",      TokenType.ELLIPSE);
+
+        // motion queries
+        KEYWORDS.put("pos",          TokenType.POS);
+        KEYWORDS.put("xcor",         TokenType.XCOR);
+        KEYWORDS.put("ycor",         TokenType.YCOR);
+        KEYWORDS.put("heading",      TokenType.HEADING);
+        KEYWORDS.put("towards",      TokenType.TOWARDS);
+
+        // turtle/window control
+        KEYWORDS.put("wrap",         TokenType.WRAP);
+        KEYWORDS.put("window",       TokenType.WINDOW);
+        KEYWORDS.put("fence",        TokenType.FENCE);
+        KEYWORDS.put("hideturtle",   TokenType.HIDETURTLE);
+        KEYWORDS.put("ht",           TokenType.HIDETURTLE);
+        KEYWORDS.put("showturtle",   TokenType.SHOWTURTLE);
+        KEYWORDS.put("st",           TokenType.SHOWTURTLE);
+
+        // turtle/window queries
+        KEYWORDS.put("shownp",       TokenType.SHOWNP);
+        KEYWORDS.put("shown?",       TokenType.SHOWNP);
 
         // pen
         KEYWORDS.put("penup",        TokenType.PENUP);
@@ -51,29 +76,41 @@ public class LogoLexer {
         KEYWORDS.put("pencolor",     TokenType.PENCOLOR);
         KEYWORDS.put("pc",           TokenType.PENCOLOR);
         KEYWORDS.put("setpencolor",  TokenType.SETPENCOLOR);
+        KEYWORDS.put("setcolor",     TokenType.SETPENCOLOR);
         KEYWORDS.put("setpensize",   TokenType.SETPENSIZE);
+        KEYWORDS.put("setwidth",     TokenType.SETPENSIZE);
         KEYWORDS.put("fill",         TokenType.FILL);
+        KEYWORDS.put("filled",       TokenType.FILLED);
+        KEYWORDS.put("label",        TokenType.LABEL);
+        KEYWORDS.put("setlabelheight", TokenType.SETLABELHEIGHT);
+        KEYWORDS.put("changeshape",  TokenType.CHANGESHAPE);
+        KEYWORDS.put("csh",          TokenType.CHANGESHAPE);
+
+        // pen queries
+        KEYWORDS.put("pendownp",     TokenType.PENDOWNP);
+        KEYWORDS.put("pendown?",     TokenType.PENDOWNP);
+        KEYWORDS.put("pensize",      TokenType.PENSIZE);
+        KEYWORDS.put("labelsize",    TokenType.LABELSIZE);
 
         // screen
         KEYWORDS.put("clean",        TokenType.CLEAN);
         KEYWORDS.put("clearscreen",  TokenType.CLEARSCREEN);
         KEYWORDS.put("cs",           TokenType.CLEARSCREEN);
-        KEYWORDS.put("hideturtle",   TokenType.HIDETURTLE);
-        KEYWORDS.put("ht",           TokenType.HIDETURTLE);
-        KEYWORDS.put("showturtle",   TokenType.SHOWTURTLE);
-        KEYWORDS.put("st",           TokenType.SHOWTURTLE);
-        KEYWORDS.put("label",        TokenType.LABEL);
 
         // variables/data
         KEYWORDS.put("make",         TokenType.MAKE);
         KEYWORDS.put("local",        TokenType.LOCAL);
         KEYWORDS.put("thing",        TokenType.THING);
+        KEYWORDS.put("name",         TokenType.NAME);
+        KEYWORDS.put("localmake",    TokenType.LOCALMAKE);
 
         // I/O
         KEYWORDS.put("print",        TokenType.PRINT);
         KEYWORDS.put("pr",           TokenType.PRINT);
         KEYWORDS.put("show",         TokenType.SHOW);
         KEYWORDS.put("type",         TokenType.TYPE);
+        KEYWORDS.put("readword",     TokenType.READWORD);
+        KEYWORDS.put("readlist",     TokenType.READLIST);
 
         // control flow
         KEYWORDS.put("if",           TokenType.IF);
@@ -88,6 +125,12 @@ public class LogoLexer {
         KEYWORDS.put("while",        TokenType.WHILE);
         KEYWORDS.put("until",        TokenType.UNTIL);
         KEYWORDS.put("for",          TokenType.FOR);
+        KEYWORDS.put("dotimes",      TokenType.DOTIMES);
+        KEYWORDS.put("do.while",     TokenType.DO_WHILE);
+        KEYWORDS.put("do.until",     TokenType.DO_UNTIL);
+        KEYWORDS.put("wait",         TokenType.WAIT);
+        KEYWORDS.put("bye",          TokenType.BYE);
+        KEYWORDS.put("repcount",     TokenType.REPCOUNT);
 
         // procedure definition
         KEYWORDS.put("to",           TokenType.TO);
@@ -95,7 +138,8 @@ public class LogoLexer {
         KEYWORDS.put("output",       TokenType.OUTPUT);
         KEYWORDS.put("op",           TokenType.OUTPUT);
         KEYWORDS.put("stop",         TokenType.STOP);
-
+        KEYWORDS.put("define",       TokenType.DEFINE);
+        KEYWORDS.put("def",          TokenType.DEF);
         KEYWORDS.put("run",          TokenType.RUN);
         KEYWORDS.put("apply",        TokenType.APPLY);
 
@@ -113,6 +157,7 @@ public class LogoLexer {
         KEYWORDS.put("se",           TokenType.SENTENCE);
         KEYWORDS.put("fput",         TokenType.FPUT);
         KEYWORDS.put("lput",         TokenType.LPUT);
+        KEYWORDS.put("pick",         TokenType.PICK);
 
         // logic
         KEYWORDS.put("and",          TokenType.AND);
@@ -129,7 +174,8 @@ public class LogoLexer {
         KEYWORDS.put("power",        TokenType.POWER);
         KEYWORDS.put("sqrt",         TokenType.SQRT);
         KEYWORDS.put("abs",          TokenType.ABS);
-        KEYWORDS.put("minus",        TokenType.MINUS);
+        KEYWORDS.put("minus",        TokenType.DIFFERENCE);
+        KEYWORDS.put("random",       TokenType.RANDOM);
 
         // comparison
         KEYWORDS.put("equalp",        TokenType.EQUALP);
@@ -142,6 +188,23 @@ public class LogoLexer {
         KEYWORDS.put("greater?",      TokenType.GREATERP);
         KEYWORDS.put("lessequalp",    TokenType.LESSEQUALP);
         KEYWORDS.put("greaterequalp", TokenType.GREATEREQUALP);
+
+        // predicates
+        KEYWORDS.put("wordp",        TokenType.WORDP);
+        KEYWORDS.put("word?",        TokenType.WORDP);
+        KEYWORDS.put("listp",        TokenType.LISTP);
+        KEYWORDS.put("list?",        TokenType.LISTP);
+        KEYWORDS.put("array",        TokenType.ARRAY);
+        KEYWORDS.put("arrayp",       TokenType.ARRAYP);
+        KEYWORDS.put("array?",       TokenType.ARRAYP);
+        KEYWORDS.put("numberp",      TokenType.NUMBERP);
+        KEYWORDS.put("number?",      TokenType.NUMBERP);
+        KEYWORDS.put("emptyp",       TokenType.EMPTYP);
+        KEYWORDS.put("empty?",       TokenType.EMPTYP);
+        KEYWORDS.put("beforep",      TokenType.BEFOREP);
+        KEYWORDS.put("before?",      TokenType.BEFOREP);
+        KEYWORDS.put("substringp",   TokenType.SUBSTRINGP);
+        KEYWORDS.put("substring?",   TokenType.SUBSTRINGP);
 
         // booleans
         KEYWORDS.put("true",  TokenType.BOOLEAN);

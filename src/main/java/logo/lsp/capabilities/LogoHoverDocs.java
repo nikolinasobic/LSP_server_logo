@@ -69,6 +69,29 @@ public class LogoHoverDocs {
                             "Moves the turtle to the position given as a list.  \n" +
                             "```logo\nsetpos [100 50]\n```"),
 
+            Map.entry("setheading",
+                    "**setheading** *angle* &nbsp;·&nbsp; aliases: `seth`, `sh`  \n" +
+                            "Rotates the turtle to the given absolute heading (0 = up, 90 = right).  \n" +
+                            "```logo\nsetheading 90\nsh 145\n```"),
+
+            Map.entry("seth",
+                    "**seth** *angle* &nbsp;·&nbsp; alias for `setheading`  \n" +
+                            "Rotates the turtle to an absolute heading."),
+
+            Map.entry("sh",
+                    "**sh** *angle* &nbsp;·&nbsp; alias for `setheading`  \n" +
+                            "Rotates the turtle to an absolute heading."),
+
+            Map.entry("arc",
+                    "**arc** *angle* *radius*  \n" +
+                            "Draws an arc of the given *radius* sweeping *angle* degrees.  \n" +
+                            "```logo\narc 360 50   ; full circle\narc 180 30\n```"),
+
+            Map.entry("ellipse",
+                    "**ellipse** *width* *height*  \n" +
+                            "Draws an ellipse with the specified *width* and *height*.  \n" +
+                            "```logo\nellipse 80 40\n```"),
+
             Map.entry("home",
                     "**home**  \n" +
                             "Moves the turtle to the center of the screen (0, 0) and resets its heading to 0°.  \n" +
@@ -78,6 +101,59 @@ public class LogoHoverDocs {
                     "**setspeed** *speed*  \n" +
                             "Sets the turtle's movement speed (0 = instant, higher = slower animation).  \n" +
                             "```logo\nsetspeed 5\n```"),
+
+            // ── Motion queries ────────────────────────────────────────────────────
+
+            Map.entry("pos",
+                    "**pos**  \n" +
+                            "Outputs the turtle's current position as a list `[ x y ]`.  \n" +
+                            "```logo\nshow pos\n```"),
+
+            Map.entry("xcor",
+                    "**xcor**  \n" +
+                            "Outputs the turtle's current X coordinate.  \n" +
+                            "```logo\nshow xcor\n```"),
+
+            Map.entry("ycor",
+                    "**ycor**  \n" +
+                            "Outputs the turtle's current Y coordinate.  \n" +
+                            "```logo\nshow ycor\n```"),
+
+            Map.entry("heading",
+                    "**heading**  \n" +
+                            "Outputs the turtle's current heading in degrees (0 = up, 90 = right).  \n" +
+                            "```logo\nshow heading\n```"),
+
+            Map.entry("towards",
+                    "**towards** *[ x y ]*  \n" +
+                            "Outputs the heading the turtle would need to face to point at *[ x y ]*.  \n" +
+                            "```logo\nshow towards [100 0]\n```"),
+
+            // ── Window control ────────────────────────────────────────────────────
+
+            Map.entry("wrap",
+                    "**wrap**  \n" +
+                            "Enables wrap mode: the turtle reappears on the opposite edge when it moves off-screen.  \n" +
+                            "```logo\nwrap\nforward 800\n```"),
+
+            Map.entry("window",
+                    "**window**  \n" +
+                            "Enables window mode: the turtle can move past screen edges without wrapping or stopping.  \n" +
+                            "```logo\nwindow\nforward 600\n```"),
+
+            Map.entry("fence",
+                    "**fence**  \n" +
+                            "Enables fence mode: the turtle stops at screen edges instead of wrapping.  \n" +
+                            "```logo\nfence\nforward 600\n```"),
+
+            Map.entry("shownp",
+                    "**shownp** &nbsp;·&nbsp; alias: `shown?`  \n" +
+                            "Outputs `true` if the turtle is visible, `false` if hidden.  \n" +
+                            "```logo\nshow shownp\n```"),
+
+            Map.entry("shown?",
+                    "**shown?** &nbsp;·&nbsp; alias for `shownp`  \n" +
+                            "Outputs `true` if the turtle is visible."),
 
             // ── Pen ───────────────────────────────────────────────────────────────
 
@@ -100,18 +176,65 @@ public class LogoHoverDocs {
                             "Lowers the pen so the turtle draws as it moves."),
 
             Map.entry("setpencolor",
-                    "**setpencolor** *color*  \n" +
-                            "Sets the pen color. *color* can be a number (0–15) or a color name.  \n" +
-                            "```logo\nsetpencolor 4   ; red\nsetpencolor \"blue\n```"),
+                    "**setpencolor** *color* &nbsp;·&nbsp; alias: `setcolor`  \n" +
+                            "Sets the pen color. *color* is a number (0–15) or an `[r g b]` list.  \n" +
+                            "```logo\nsetpencolor 4\nsetcolor [255 0 0]\n```"),
+
+            Map.entry("setcolor",
+                    "**setcolor** *color* &nbsp;·&nbsp; alias for `setpencolor`  \n" +
+                            "Sets the pen color. *color* is a number (0–15) or an `[r g b]` list."),
 
             Map.entry("setpensize",
-                    "**setpensize** *size*  \n" +
+                    "**setpensize** *size* &nbsp;·&nbsp; alias: `setwidth`  \n" +
                             "Sets the pen width in pixels.  \n" +
-                            "```logo\nsetpensize 3\n```"),
+                            "```logo\nsetpensize 3\nsetwidth 5\n```"),
+
+            Map.entry("setwidth",
+                    "**setwidth** *size* &nbsp;·&nbsp; alias for `setpensize`  \n" +
+                            "Sets the pen width in pixels."),
 
             Map.entry("pencolor",
                     "**pencolor** &nbsp;·&nbsp; alias: `pc`  \n" +
-                            "Returns the current pen color number."),
+                            "Outputs the current pen color.  \n" +
+                            "```logo\nshow pencolor\n```"),
+
+            Map.entry("pendownp",
+                    "**pendownp** &nbsp;·&nbsp; alias: `pendown?`  \n" +
+                            "Outputs `true` if the pen is down, `false` if up.  \n" +
+                            "```logo\nshow pendownp\n```"),
+
+            Map.entry("pendown?",
+                    "**pendown?** &nbsp;·&nbsp; alias for `pendownp`  \n" +
+                            "Outputs `true` if the pen is down."),
+
+            Map.entry("pensize",
+                    "**pensize**  \n" +
+                            "Outputs the current pen width in pixels.  \n" +
+                            "```logo\nshow pensize\n```"),
+
+            Map.entry("filled",
+                    "**filled** *color* *[ body ]*  \n" +
+                            "Executes *body*, tracing the turtle path, then fills the enclosed region with *color*.  \n" +
+                            "```logo\nfilled \"blue [ repeat 4 [ fd 100 rt 90 ] ]\n```"),
+
+            Map.entry("setlabelheight",
+                    "**setlabelheight** *pixels*  \n" +
+                            "Sets the font size used by `label`, in pixels.  \n" +
+                            "```logo\nsetlabelheight 24\nlabel \"Hello\n```"),
+
+            Map.entry("labelsize",
+                    "**labelsize**  \n" +
+                            "Outputs the current label font size in pixels.  \n" +
+                            "```logo\nshow labelsize\n```"),
+
+            Map.entry("changeshape",
+                    "**changeshape** *shape* &nbsp;·&nbsp; alias: `csh`  \n" +
+                            "Changes the turtle's appearance. *shape* is a number (0–7) or name: 0=turtle, 1=cat, 2=fish, 3=dog, 4=horse, 5=tiger, 6=crab, 7=snail.  \n" +
+                            "```logo\nchangeshape 1   ; cat\ncsh \"dog\n```"),
+
+            Map.entry("csh",
+                    "**csh** *shape* &nbsp;·&nbsp; alias for `changeshape`  \n" +
+                            "Changes the turtle's appearance."),
 
             Map.entry("fill",
                     "**fill**  \n" +
@@ -158,6 +281,16 @@ public class LogoHoverDocs {
                             "Makes the turtle icon visible."),
 
             // ── Variables & data ──────────────────────────────────────────────────
+
+            Map.entry("localmake",
+                    "**localmake** *\"name* *value*  \n" +
+                            "Declares and assigns a local variable in one step. Shortcut for `local` + `make`.  \n" +
+                            "```logo\nlocalmake \"temp 0\n```"),
+
+            Map.entry("name",
+                    "**name** *value* *\"varname*  \n" +
+                            "Like `make` but with arguments reversed: assigns *value* to variable *varname*.  \n" +
+                            "```logo\nname 42 \"answer\n```"),
 
             Map.entry("make",
                     "**make** *\"name* *value*  \n" +
@@ -234,6 +367,36 @@ public class LogoHoverDocs {
                             "Executes *body* repeatedly as long as *condition* is true.  \n" +
                             "```logo\nwhile [:x > 0] [ make \"x :x - 1 ]\n```"),
 
+            Map.entry("dotimes",
+                    "**dotimes** *[ var count ]* *[ body ]*  \n" +
+                            "Runs *body* *count* times; *var* holds the current iteration number (1-based).  \n" +
+                            "```logo\ndotimes [i 5] [ show :i ]\n```"),
+
+            Map.entry("do.while",
+                    "**do.while** *[ body ]* *condition*  \n" +
+                            "Runs *body* at least once, then repeats while *condition* is true.  \n" +
+                            "```logo\ndo.while [ make \"a random 10  show :a ] :a < 8\n```"),
+
+            Map.entry("do.until",
+                    "**do.until** *[ body ]* *condition*  \n" +
+                            "Runs *body* at least once, then repeats until *condition* is true.  \n" +
+                            "```logo\ndo.until [ make \"a random 10  show :a ] :a >= 8\n```"),
+
+            Map.entry("wait",
+                    "**wait** *ticks*  \n" +
+                            "Pauses execution for *ticks* / 60 seconds.  \n" +
+                            "```logo\nrepeat 4 [ forward 50  wait 30 ]\n```"),
+
+            Map.entry("bye",
+                    "**bye**  \n" +
+                            "Terminates the program.  \n" +
+                            "```logo\nbye\n```"),
+
+            Map.entry("repcount",
+                    "**repcount**  \n" +
+                            "Outputs the current iteration number inside the innermost `repeat` or `forever` loop.  \n" +
+                            "```logo\nrepeat 4 [ show repcount ]\n```"),
+
             Map.entry("stop",
                     "**stop**  \n" +
                             "Exits the current procedure immediately (like `return` with no value).  \n" +
@@ -250,6 +413,16 @@ public class LogoHoverDocs {
 
             // ── Procedure definition ──────────────────────────────────────────────
 
+            Map.entry("define",
+                    "**define** *\"name* *[ [ params ] [ body ] ]*  \n" +
+                            "Defines a procedure from a list structure (alternative to `to...end`).  \n" +
+                            "```logo\ndefine \"square [[:n] [repeat 4 [fd :n rt 90]]]\n```"),
+
+            Map.entry("def",
+                    "**def** *\"name*  \n" +
+                            "Outputs the definition of the named procedure as a string.  \n" +
+                            "```logo\nshow def \"square\n```"),
+
             Map.entry("to",
                     "**to** *name* *[:param ...]* *body* **end**  \n" +
                             "Defines a new procedure named *name* with optional parameters.  \n" +
@@ -259,7 +432,7 @@ public class LogoHoverDocs {
                     "**end**  \n" +
                             "Marks the end of a procedure definition started with `to`."),
 
-            // ── I/O ───────────────────────────────────────────────────────────────
+            // ── I/O ──────────────────────────────────────────────────────────────
 
             Map.entry("print",
                     "**print** *value* &nbsp;·&nbsp; alias: `pr`  \n" +
@@ -280,6 +453,16 @@ public class LogoHoverDocs {
                             "Prints *value* without a trailing newline.  \n" +
                             "```logo\ntype \"Hello  type \" \"  type \"World\n```"),
 
+            Map.entry("readword",
+                    "**readword**  \n" +
+                            "Prompts the user for a line of input and outputs it as a single word (spaces included).  \n" +
+                            "```logo\nmake \"name (readword [What is your name?])\nshow :name\n```"),
+
+            Map.entry("readlist",
+                    "**readlist**  \n" +
+                            "Prompts the user for a line of input and outputs it as a list of words.  \n" +
+                            "```logo\nmake \"colors (readlist [Type some colors:])\nshow :colors\n```"),
+
             // ── Arithmetic ────────────────────────────────────────────────────────
 
             Map.entry("sum",
@@ -291,6 +474,11 @@ public class LogoHoverDocs {
                     "**difference** *a* *b*  \n" +
                             "Returns *a* - *b*.  \n" +
                             "```logo\nprint difference 10 3   ; prints 7\n```"),
+
+            Map.entry("minus",
+                    "**minus** *a* *b*  \n" +
+                            "Returns *a* - *b*. Equivalent to `a - b`.  \n" +
+                            "```logo\nprint minus 8 2   ; prints 6\n```"),
 
             Map.entry("product",
                     "**product** *a* *b*  \n" +
@@ -321,6 +509,11 @@ public class LogoHoverDocs {
                     "**power** *base* *exp*  \n" +
                             "Returns *base* raised to the power *exp*.  \n" +
                             "```logo\nprint power 2 8   ; prints 256\n```"),
+
+            Map.entry("random",
+                    "**random** *n*  \n" +
+                            "Returns a random integer from 0 to *n*−1.  \n" +
+                            "```logo\nprint random 10   ; prints 0..9\n```"),
 
             // ── Comparison / logic ────────────────────────────────────────────────
 
@@ -406,7 +599,73 @@ public class LogoHoverDocs {
             Map.entry("run",
                     "**run** *[ commands ]*  \n" +
                             "Executes *commands* as if they were typed directly.  \n" +
-                            "```logo\nrun [ forward 100  right 90 ]\n```")
+                            "```logo\nrun [ forward 100  right 90 ]\n```"),
+
+            Map.entry("pick",
+                    "**pick** *list*  \n" +
+                            "Returns a randomly chosen element from *list*.  \n" +
+                            "```logo\nshow pick [1 2 3 4 5]\n```"),
+
+            // ── Predicates ────────────────────────────────────────────────────────
+
+            Map.entry("wordp",
+                    "**wordp** *thing* &nbsp;·&nbsp; alias: `word?`  \n" +
+                            "Outputs `true` if *thing* is a word (string), `false` otherwise.  \n" +
+                            "```logo\nshow wordp \"hello   ; true\n```"),
+
+            Map.entry("word?",
+                    "**word?** *thing* &nbsp;·&nbsp; alias for `wordp`  \n" +
+                            "Outputs `true` if *thing* is a word."),
+
+            Map.entry("listp",
+                    "**listp** *thing* &nbsp;·&nbsp; alias: `list?`  \n" +
+                            "Outputs `true` if *thing* is a list.  \n" +
+                            "```logo\nshow listp [1 2 3]   ; true\n```"),
+
+            Map.entry("list?",
+                    "**list?** *thing* &nbsp;·&nbsp; alias for `listp`  \n" +
+                            "Outputs `true` if *thing* is a list."),
+
+            Map.entry("numberp",
+                    "**numberp** *thing* &nbsp;·&nbsp; alias: `number?`  \n" +
+                            "Outputs `true` if *thing* is a number.  \n" +
+                            "```logo\nshow numberp 42   ; true\n```"),
+
+            Map.entry("number?",
+                    "**number?** *thing* &nbsp;·&nbsp; alias for `numberp`  \n" +
+                            "Outputs `true` if *thing* is a number."),
+
+            Map.entry("emptyp",
+                    "**emptyp** *thing* &nbsp;·&nbsp; alias: `empty?`  \n" +
+                            "Outputs `true` if *thing* is an empty list or empty string.  \n" +
+                            "```logo\nshow emptyp []   ; true\n```"),
+
+            Map.entry("empty?",
+                    "**empty?** *thing* &nbsp;·&nbsp; alias for `emptyp`  \n" +
+                            "Outputs `true` if *thing* is empty."),
+
+            Map.entry("beforep",
+                    "**beforep** *word1* *word2* &nbsp;·&nbsp; alias: `before?`  \n" +
+                            "Outputs `true` if *word1* comes before *word2* in alphabetical order.  \n" +
+                            "```logo\nshow beforep \"apple \"banana   ; true\n```"),
+
+            Map.entry("before?",
+                    "**before?** *word1* *word2* &nbsp;·&nbsp; alias for `beforep`  \n" +
+                            "Outputs `true` if *word1* is alphabetically before *word2*."),
+
+            Map.entry("array",
+                    "**array** *n*  \n" +
+                            "Creates and outputs an array of *n* elements, indexed from 1.  \n" +
+                            "```logo\nmake \"a array 5\nprint arrayp :a   ; true\n```"),
+
+            Map.entry("substringp",
+                    "**substringp** *part* *whole* &nbsp;·&nbsp; alias: `substring?`  \n" +
+                            "Outputs `true` if *part* is a substring of *whole*.  \n" +
+                            "```logo\nshow substringp \"hello \"helloworld   ; true\n```"),
+
+            Map.entry("substring?",
+                    "**substring?** *part* *whole* &nbsp;·&nbsp; alias for `substringp`  \n" +
+                            "Outputs `true` if *part* is contained within *whole*.")
     );
 
     /**

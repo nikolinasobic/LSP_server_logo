@@ -19,16 +19,22 @@ public class LogoParser {
     private static final String ERR_UNEXPECTED_EXPR_TOKEN_FMT  = "Unexpected token '%s' in expression";
 
     // fixed error messages
-    private static final String ERR_EXPECTED_PROC_NAME      = "Expected procedure name after TO";
-    private static final String ERR_EXPECTED_VAR_NAME_MAKE  = "Expected variable name after MAKE";
-    private static final String ERR_EXPECTED_VAR_NAME_LOCAL = "Expected variable name after LOCAL";
-    private static final String ERR_EXPECTED_LBRACKET_FOR  = "Expected '[' after FOR";
-    private static final String ERR_EXPECTED_VAR_NAME_FOR  = "Expected variable name in FOR header";
-    private static final String ERR_EXPECTED_RBRACKET_FOR  = "Expected ']' to close FOR header";
-    private static final String ERR_EXPECTED_LBRACKET      = "Expected '['";
-    private static final String ERR_EXPECTED_RBRACKET      = "Expected ']'";
-    private static final String ERR_EXPECTED_RPAREN        = "Expected ')'";
-    private static final String ERR_MISSING_RBRACKET       = "Missing ']'";
+    private static final String ERR_EXPECTED_PROC_NAME         = "Expected procedure name after TO";
+    private static final String ERR_EXPECTED_PROC_NAME_DEFINE  = "Expected procedure name after DEFINE";
+    private static final String ERR_EXPECTED_VAR_NAME_MAKE     = "Expected variable name after MAKE";
+    private static final String ERR_EXPECTED_VAR_NAME_LOCAL    = "Expected variable name after LOCAL";
+    private static final String ERR_EXPECTED_VAR_NAME_LOCALMAKE = "Expected variable name after LOCALMAKE";
+    private static final String ERR_EXPECTED_VAR_NAME_NAME     = "Expected variable name after NAME value";
+    private static final String ERR_EXPECTED_LBRACKET_FOR      = "Expected '[' after FOR";
+    private static final String ERR_EXPECTED_VAR_NAME_FOR      = "Expected variable name in FOR header";
+    private static final String ERR_EXPECTED_RBRACKET_FOR      = "Expected ']' to close FOR header";
+    private static final String ERR_EXPECTED_LBRACKET_DOTIMES  = "Expected '[' after DOTIMES";
+    private static final String ERR_EXPECTED_VAR_NAME_DOTIMES  = "Expected variable name in DOTIMES header";
+    private static final String ERR_EXPECTED_RBRACKET_DOTIMES  = "Expected ']' to close DOTIMES header";
+    private static final String ERR_EXPECTED_LBRACKET          = "Expected '['";
+    private static final String ERR_EXPECTED_RBRACKET          = "Expected ']'";
+    private static final String ERR_EXPECTED_RPAREN            = "Expected ')'";
+    private static final String ERR_MISSING_RBRACKET           = "Missing ']'";
 
     // max value for forever
     private static final String FOREVER_COUNT_VALUE = "999999";
@@ -36,20 +42,30 @@ public class LogoParser {
     // for did you mean? suggestions (all built-in commands)
     private static final List<String> BUILTIN_NAMES = List.of(
             "forward","fd","back","bk","left","lt","right","rt",
-            "setx","sety","setxy","setpos","setspeed","home",
-            "penup","pu","pendown","pd","pencolor","pc","setpencolor","setpensize",
-            "clean","clearscreen","cs","hideturtle","ht","showturtle","st","fill","label",
-            "make","local","thing",
-            "print","pr","show","type",
+            "setx","sety","setxy","setpos","setheading","seth","sh","setspeed","home","arc","ellipse",
+            "pos","xcor","ycor","heading","towards",
+            "wrap","window","fence","hideturtle","ht","showturtle","st",
+            "shownp","shown?",
+            "penup","pu","pendown","pd","pencolor","pc",
+            "setpencolor","setcolor","setpensize","setwidth",
+            "fill","filled","label","setlabelheight","changeshape","csh",
+            "pendownp","pendown?","pensize","labelsize",
+            "clean","clearscreen","cs",
+            "make","local","thing","name","localmake",
+            "print","pr","show","type","readword","readlist",
             "if","ifelse","test","iftrue","ift","iffalse","iff",
-            "repeat","forever","while","until","for",
-            "to","end","output","op","stop",
+            "repeat","forever","while","until","for","dotimes","do.while","do.until",
+            "wait","bye","repcount",
+            "to","end","output","op","stop","define","def",
             "run","apply",
             "list","first","last","butfirst","bf","butlast","bl","item","count",
-            "sentence","se","fput","lput",
+            "sentence","se","fput","lput","pick",
             "and","or","not",
-            "sum","difference","product","quotient","remainder","modulo","power","sqrt","abs","minus",
-            "equalp","notequalp","lessp","greaterp","lessequalp","greaterequalp"
+            "sum","difference","product","quotient","remainder","modulo","power","sqrt","abs","minus","random",
+            "equalp","equal?","notequalp","notequal?",
+            "lessp","less?","greaterp","greater?","lessequalp","greaterequalp",
+            "wordp","word?","listp","list?","array","arrayp","array?","numberp","number?","emptyp","empty?",
+            "beforep","before?","substringp","substring?"
     );
 
     private final Map<String, Token>   procedureDefinitions = new LinkedHashMap<>();
@@ -88,20 +104,26 @@ public class LogoParser {
         final Token t = peek();
 
         return switch (t.type()) {
-            case TO           -> parseProcedureDef();
-            case MAKE         -> parseMake();
-            case LOCAL        -> parseLocal();
-            case REPEAT       -> parseRepeat();
-            case FOREVER      -> parseForever();
-            case WHILE, UNTIL -> parseWhile();
-            case IF           -> parseIf(false);
-            case IFELSE       -> parseIf(true);
-            case TEST         -> parseTest();
-            case IFTRUE       -> parseIfTrueOrFalse(false);
-            case IFFALSE      -> parseIfTrueOrFalse(true);
-            case FOR          -> parseFor();
-            case OUTPUT       -> parseOutput();
-            case STOP         -> parseStop();
+            case TO              -> parseProcedureDef();
+            case DEFINE          -> parseDefine();
+            case MAKE            -> parseMake();
+            case LOCAL           -> parseLocal();
+            case LOCALMAKE       -> parseLocalMake();
+            case NAME            -> parseName();
+            case REPEAT          -> parseRepeat();
+            case FOREVER         -> parseForever();
+            case WHILE, UNTIL    -> parseWhile();
+            case DO_WHILE, DO_UNTIL -> parseDoWhileOrUntil();
+            case DOTIMES         -> parseDotimes();
+            case FILLED          -> parseFilled();
+            case IF              -> parseIf(false);
+            case IFELSE          -> parseIf(true);
+            case TEST            -> parseTest();
+            case IFTRUE          -> parseIfTrueOrFalse(false);
+            case IFFALSE         -> parseIfTrueOrFalse(true);
+            case FOR             -> parseFor();
+            case OUTPUT          -> parseOutput();
+            case STOP            -> parseStop();
             case NEWLINE -> { skipNewlines(); yield null; }
             case EOF     -> null;
 
@@ -364,6 +386,106 @@ public class LogoParser {
         return new Node.CommandCall(token, Collections.emptyList());
     }
 
+    // LOCALMAKE "varname expr
+
+    private Node parseLocalMake() {
+        final var token = consume(TokenType.LOCALMAKE);
+        if (!check(TokenType.STRING) && !check(TokenType.IDENTIFIER)) {
+            throw new ParseException(ParseError.error(ERR_EXPECTED_VAR_NAME_LOCALMAKE, peek()));
+        }
+        final var varName = registerVariable(advance());
+        final var value   = parseExpr();
+        return new Node.MakeStatement(token, varName, value);
+    }
+
+    // NAME expr "varname  (reversed make)
+
+    private Node parseName() {
+        final var token = consume(TokenType.NAME);
+        final var value = parseExpr();
+        if (!check(TokenType.STRING) && !check(TokenType.IDENTIFIER)) {
+            throw new ParseException(ParseError.error(ERR_EXPECTED_VAR_NAME_NAME, peek()));
+        }
+        registerVariable(advance());
+        return new Node.CommandCall(token, List.of(value));
+    }
+
+    // DEFINE "procname [[params...][body...]]
+
+    private Node parseDefine() {
+        final var token = advance();
+        if (!check(TokenType.STRING) && !check(TokenType.IDENTIFIER)) {
+            throw new ParseException(ParseError.error(ERR_EXPECTED_PROC_NAME_DEFINE, peek()));
+        }
+        final var nameToken = advance();
+        final var name      = nameToken.value().toLowerCase();
+        procedureDefinitions.put(name, nameToken);
+
+        // consume outer [  of  [[params][body]]
+        skipNewlines();
+        expect(TokenType.LBRACKET, "Expected '[[params][body]]' after DEFINE name");
+
+        // parse [param ...] as a list literal — each element is an IDENTIFIER
+        skipNewlines();
+        final var paramsList = parsePrimary();
+        int arity = 0;
+        if (paramsList instanceof Node.ListLiteral params) {
+            arity = params.elements.size();
+            for (final Node elem : params.elements) {
+                if (elem instanceof Node.CommandCall call) {
+                    variableDefinitions.putIfAbsent(call.name, call.token);
+                }
+            }
+        }
+        procedureArities.put(name, arity);
+
+        // parse [body] properly as statements so variable definitions are registered
+        skipNewlines();
+        final var body = parseBlock();
+
+        // close outer ]
+        expect(TokenType.RBRACKET, "Expected ']' to close DEFINE spec");
+        return new Node.ProcedureDef(token, nameToken, Collections.emptyList(), body, null);
+    }
+
+    // DOTIMES [varname count] [body]
+
+    private Node parseDotimes() {
+        final var token = consume(TokenType.DOTIMES);
+        expect(TokenType.LBRACKET, ERR_EXPECTED_LBRACKET_DOTIMES);
+        skipNewlines();
+        if (!check(TokenType.VARIABLE) && !check(TokenType.IDENTIFIER)) {
+            throw new ParseException(ParseError.error(ERR_EXPECTED_VAR_NAME_DOTIMES, peek()));
+        }
+        final var varToken = advance();
+        variableDefinitions.putIfAbsent(varToken.value().toLowerCase(), varToken);
+        final var count = parseExpr();
+        expect(TokenType.RBRACKET, ERR_EXPECTED_RBRACKET_DOTIMES);
+        skipNewlines();
+        final var body     = parseBlock();
+        final var startTok = new Token(TokenType.NUMBER, "1",
+                token.line(), token.startCol(), token.endCol());
+        return new Node.ForStatement(token, varToken.value().toLowerCase(),
+                new Node.NumberLiteral(startTok), count, null, body);
+    }
+
+    // DO.WHILE [body] expr  /  DO.UNTIL [body] expr
+
+    private Node parseDoWhileOrUntil() {
+        final var token     = advance();
+        final var body      = parseBlock();
+        final var condition = parseExpr();
+        return new Node.IfStatement(token, condition, body, Collections.emptyList());
+    }
+
+    // FILLED fillcolor [body]
+
+    private Node parseFilled() {
+        final var token = advance();
+        final var color = parseExpr();
+        final var body  = parseBlock();
+        return new Node.IfStatement(token, color, body, Collections.emptyList());
+    }
 
     private String registerVariable(final Token varNameToken) {
         final var varName = varNameToken.value().toLowerCase();
@@ -380,19 +502,28 @@ public class LogoParser {
     private int inferArity(final TokenType t) {
         return switch (t) {
             case FORWARD, BACK, LEFT, RIGHT,
-                 SETX, SETY, LABEL, SETSPEED, SETPENSIZE, PENCOLOR,
+                 SETX, SETY, LABEL, SETSPEED, SETPENSIZE,
+                 SETPOS, SETPENCOLOR,
                  PRINT, SHOW, TYPE,
-                 SQRT, ABS, MINUS, NOT, FIRST, LAST,
-                 BUTFIRST, BUTLAST, COUNT, THING -> 1;
+                 SQRT, ABS, NOT, FIRST, LAST,
+                 BUTFIRST, BUTLAST, COUNT, THING,
+                 SETHEADING, TOWARDS, SETLABELHEIGHT, CHANGESHAPE,
+                 DEF, WAIT, RANDOM, PICK,
+                 WORDP, LISTP, ARRAY, ARRAYP, NUMBERP, EMPTYP -> 1;
 
-            case SETXY, SETPOS, SETPENCOLOR,
-                 SUM, DIFFERENCE, PRODUCT, QUOTIENT, REMAINDER, MODULO, POWER,
+            case SETXY,
+                 SUM, DIFFERENCE, PRODUCT, QUOTIENT, REMAINDER, MODULO, POWER, MINUS,
                  EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP,
                  AND, OR, FPUT, LPUT, ITEM,
-                 SENTENCE, LIST -> 2;
+                 SENTENCE, LIST,
+                 ARC, ELLIPSE, BEFOREP, SUBSTRINGP -> 2;
 
             case PENUP, PENDOWN, CLEAN, CLEARSCREEN, HOME,
-                 HIDETURTLE, SHOWTURTLE, FILL, STOP -> 0;
+                 HIDETURTLE, SHOWTURTLE, FILL, STOP,
+                 PENCOLOR, POS, XCOR, YCOR, HEADING,
+                 WRAP, WINDOW, FENCE,
+                 SHOWNP, LABELSIZE, PENDOWNP, PENSIZE,
+                 BYE, REPCOUNT, READWORD, READLIST -> 0;
 
             default -> 0;
         };
@@ -489,6 +620,18 @@ public class LogoParser {
             case LPAREN -> {
                 advance();
                 final var inner = parseExpr();
+                // Logo allows (func extra args...) for variadic calls, e.g. (readword [prompt])
+                if (inner instanceof Node.CommandCall call
+                        && !check(TokenType.RPAREN)
+                        && !check(TokenType.NEWLINE)
+                        && !atEnd()) {
+                    final var args = new ArrayList<>(call.args);
+                    while (!check(TokenType.RPAREN) && !check(TokenType.NEWLINE) && !atEnd()) {
+                        args.add(parseExpr());
+                    }
+                    expect(TokenType.RPAREN, ERR_EXPECTED_RPAREN);
+                    yield new Node.CommandCall(call.token, args);
+                }
                 expect(TokenType.RPAREN, ERR_EXPECTED_RPAREN);
                 yield inner;
             }
@@ -506,17 +649,23 @@ public class LogoParser {
     private boolean isCommandToken(final TokenType type) {
         return switch (type) {
             case FORWARD, BACK, LEFT, RIGHT,
-                 SETX, SETY, SETXY, SETPOS,
+                 SETX, SETY, SETXY, SETPOS, SETHEADING, SETSPEED,
+                 HOME, ARC, ELLIPSE,
+                 POS, XCOR, YCOR, HEADING, TOWARDS,
+                 WRAP, WINDOW, FENCE,
                  PENUP, PENDOWN, PENCOLOR, SETPENCOLOR, SETPENSIZE,
-                 CLEAN, CLEARSCREEN, HOME, FILL, LABEL,
-                 HIDETURTLE, SHOWTURTLE, SETSPEED,
-                 PRINT, SHOW, TYPE,
+                 CLEAN, CLEARSCREEN, FILL, LABEL, SETLABELHEIGHT, CHANGESHAPE,
+                 HIDETURTLE, SHOWTURTLE,
+                 SHOWNP, LABELSIZE, PENDOWNP, PENSIZE,
+                 PRINT, SHOW, TYPE, READWORD, READLIST,
                  SUM, DIFFERENCE, PRODUCT, QUOTIENT, REMAINDER, MODULO, POWER,
-                 SQRT, ABS, MINUS, NOT,
+                 SQRT, ABS, MINUS, NOT, RANDOM,
                  EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP,
                  AND, OR,
-                 LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM, COUNT, SENTENCE, FPUT, LPUT,
-                 THING, MAKE, OUTPUT, STOP, RUN, APPLY -> true;
+                 LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM, COUNT, SENTENCE, FPUT, LPUT, PICK,
+                 THING, MAKE, OUTPUT, STOP, DEF, BYE, WAIT, REPCOUNT,
+                 RUN, APPLY,
+                 WORDP, LISTP, ARRAY, ARRAYP, NUMBERP, EMPTYP, BEFOREP, SUBSTRINGP -> true;
             default -> false;
         };
     }
