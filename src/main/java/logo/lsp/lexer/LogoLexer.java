@@ -39,7 +39,6 @@ public class LogoLexer {
         KEYWORDS.put("setx",         TokenType.SETX);
         KEYWORDS.put("sety",         TokenType.SETY);
         KEYWORDS.put("setxy",        TokenType.SETXY);
-        KEYWORDS.put("setpos",       TokenType.SETPOS);
         KEYWORDS.put("setheading",   TokenType.SETHEADING);
         KEYWORDS.put("seth",         TokenType.SETHEADING);
         KEYWORDS.put("sh",           TokenType.SETHEADING);
@@ -74,10 +73,8 @@ public class LogoLexer {
         KEYWORDS.put("pd",           TokenType.PENDOWN);
         KEYWORDS.put("pencolor",     TokenType.PENCOLOR);
         KEYWORDS.put("pc",           TokenType.PENCOLOR);
-        KEYWORDS.put("setpencolor",  TokenType.SETPENCOLOR);
-        KEYWORDS.put("setcolor",     TokenType.SETPENCOLOR);
-        KEYWORDS.put("setpensize",   TokenType.SETPENSIZE);
-        KEYWORDS.put("setwidth",     TokenType.SETPENSIZE);
+        KEYWORDS.put("setcolor",     TokenType.SETCOLOR);
+        KEYWORDS.put("setwidth",     TokenType.SETWIDTH);
         KEYWORDS.put("fill",         TokenType.FILL);
         KEYWORDS.put("filled",       TokenType.FILLED);
         KEYWORDS.put("label",        TokenType.LABEL);
@@ -132,9 +129,7 @@ public class LogoLexer {
         // procedure definition
         KEYWORDS.put("to",           TokenType.TO);
         KEYWORDS.put("end",          TokenType.END);
-        KEYWORDS.put("output",       TokenType.OUTPUT);
-        KEYWORDS.put("op",           TokenType.OUTPUT);
-        KEYWORDS.put("stop",         TokenType.STOP);
+
         KEYWORDS.put("define",       TokenType.DEFINE);
         KEYWORDS.put("def",          TokenType.DEF);
 

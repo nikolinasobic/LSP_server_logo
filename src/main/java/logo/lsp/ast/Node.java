@@ -123,17 +123,6 @@ public abstract class Node {
         }
     }
 
-    // OUTPUT expr / STOP
-
-    public static class OutputStatement extends Node {
-        public final Node value;  // null for STOP
-
-        public OutputStatement(final Token token, final Node value) {
-            super(token);
-            this.value = value;
-        }
-    }
-
     // binary expression
 
     public static class BinaryExpr extends Node {

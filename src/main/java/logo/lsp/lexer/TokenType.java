@@ -11,7 +11,7 @@ public enum TokenType {
 
     // turtle motion
     FORWARD, BACK, LEFT, RIGHT,
-    SETX, SETY, SETXY, SETPOS, SETHEADING,
+    SETX, SETY, SETXY, SETHEADING,
     HOME, ARC, ELLIPSE,
 
     // turtle motion queries
@@ -25,7 +25,7 @@ public enum TokenType {
     SHOWNP,
 
     // pen control
-    PENUP, PENDOWN, PENCOLOR, SETPENCOLOR, SETPENSIZE,
+    PENUP, PENDOWN, PENCOLOR, SETCOLOR, SETWIDTH,
     FILL, FILLED, LABEL, SETLABELHEIGHT, CHANGESHAPE,
 
     // pen queries
@@ -47,7 +47,7 @@ public enum TokenType {
     WAIT, BYE, REPCOUNT,
 
     // procedure
-    TO, END, OUTPUT, STOP, DEFINE, DEF,
+    TO, END, DEFINE, DEF,
 
     // lists
     LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM,

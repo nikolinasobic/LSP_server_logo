@@ -62,11 +62,11 @@ public class SemanticTokenEncoder {
     private static int mapTokenType(final TokenType t) {
         return switch (t) {
             case FORWARD, BACK, LEFT, RIGHT,
-                 SETX, SETY, SETXY, SETPOS, SETHEADING,
+                 SETX, SETY, SETXY, SETHEADING,
                  HOME, ARC, ELLIPSE,
                  POS, XCOR, YCOR, HEADING, TOWARDS,
                  WRAP, WINDOW, FENCE,
-                 PENUP, PENDOWN, PENCOLOR, SETPENCOLOR, SETPENSIZE,
+                 PENUP, PENDOWN, PENCOLOR, SETCOLOR, SETWIDTH,
                  CLEAN, CLEARSCREEN, FILL, FILLED, LABEL, SETLABELHEIGHT, CHANGESHAPE,
                  HIDETURTLE, SHOWTURTLE,
                  SHOWNP, LABELSIZE, PENDOWNP, PENSIZE,
@@ -75,7 +75,7 @@ public class SemanticTokenEncoder {
                  IF, IFELSE, TEST, IFTRUE, IFFALSE,
                  REPEAT, WHILE, UNTIL, FOR,
                  DOTIMES, DO_WHILE, DO_UNTIL, WAIT, BYE, REPCOUNT,
-                 TO, END, OUTPUT, STOP, DEFINE, DEF,
+                 TO, END, DEFINE, DEF,
                  LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM,
                  PICK,
                  SUM, KEYWORD_MINUS, MODULO, POWER,

@@ -64,10 +64,6 @@ public class LogoHoverDocs {
                             "Moves the turtle to the given (X, Y) position without drawing.  \n" +
                             "```logo\nsetxy 0 0\n```"),
 
-            Map.entry("setpos",
-                    "**setpos** *[ x y ]*  \n" +
-                            "Moves the turtle to the position given as a list.  \n" +
-                            "```logo\nsetpos [100 50]\n```"),
 
             Map.entry("setheading",
                     "**setheading** *angle* &nbsp;·&nbsp; aliases: `seth`, `sh`  \n" +
@@ -170,23 +166,15 @@ public class LogoHoverDocs {
                     "**pd** &nbsp;·&nbsp; alias for `pendown`  \n" +
                             "Lowers the pen so the turtle draws as it moves."),
 
-            Map.entry("setpencolor",
-                    "**setpencolor** *color* &nbsp;·&nbsp; alias: `setcolor`  \n" +
-                            "Sets the pen color. *color* is a number (0–15) or an `[r g b]` list.  \n" +
-                            "```logo\nsetpencolor 4\nsetcolor [255 0 0]\n```"),
-
             Map.entry("setcolor",
-                    "**setcolor** *color* &nbsp;·&nbsp; alias for `setpencolor`  \n" +
-                            "Sets the pen color. *color* is a number (0–15) or an `[r g b]` list."),
-
-            Map.entry("setpensize",
-                    "**setpensize** *size* &nbsp;·&nbsp; alias: `setwidth`  \n" +
-                            "Sets the pen width in pixels.  \n" +
-                            "```logo\nsetpensize 3\nsetwidth 5\n```"),
+                    "**setcolor** *color*  \n" +
+                            "Sets the pen color. *color* is a number (0–15) or an `[r g b]` list.  \n" +
+                            "```logo\nsetcolor 4\nsetcolor [255 0 0]\n```"),
 
             Map.entry("setwidth",
-                    "**setwidth** *size* &nbsp;·&nbsp; alias for `setpensize`  \n" +
-                            "Sets the pen width in pixels."),
+                    "**setwidth** *size*  \n" +
+                            "Sets the pen width in pixels.  \n" +
+                            "```logo\nsetwidth 3\n```"),
 
             Map.entry("pencolor",
                     "**pencolor** &nbsp;·&nbsp; alias: `pc`  \n" +
@@ -386,20 +374,6 @@ public class LogoHoverDocs {
                     "**repcount**  \n" +
                             "Outputs the current iteration number inside the innermost `repeat` loop.  \n" +
                             "```logo\nrepeat 4 [ show repcount ]\n```"),
-
-            Map.entry("stop",
-                    "**stop**  \n" +
-                            "Exits the current procedure immediately (like `return` with no value).  \n" +
-                            "```logo\nto safeforward :n\n    if :n < 0 [stop]\n    forward :n\nend\n```"),
-
-            Map.entry("output",
-                    "**output** *value* &nbsp;·&nbsp; alias: `op`  \n" +
-                            "Returns *value* from the current procedure (like `return` with a value).  \n" +
-                            "```logo\nto double :n\n    output :n * 2\nend\n```"),
-
-            Map.entry("op",
-                    "**op** *value* &nbsp;·&nbsp; alias for `output`  \n" +
-                            "Returns *value* from the current procedure."),
 
             // ── Procedure definition ──────────────────────────────────────────────
 

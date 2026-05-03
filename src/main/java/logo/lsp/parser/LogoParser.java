@@ -41,12 +41,12 @@ public class LogoParser {
     // for did you mean? suggestions and autocomplete
     public static final List<String> BUILTIN_NAMES = List.of(
             "forward","fd","back","bk","left","lt","right","rt",
-            "setx","sety","setxy","setpos","setheading","seth","sh","home","arc","ellipse",
+            "setx","sety","setxy","setheading","seth","sh","home","arc","ellipse",
             "pos","xcor","ycor","heading","towards",
             "wrap","window","fence","hideturtle","ht","showturtle","st",
             "shownp","shown?",
             "penup","pu","pendown","pd","pencolor","pc",
-            "setpencolor","setcolor","setpensize","setwidth",
+            "setcolor","setwidth",
             "fill","filled","label","setlabelheight","changeshape","csh",
             "pendownp","pendown?","pensize","labelsize",
             "clean","clearscreen","cs",
@@ -55,7 +55,7 @@ public class LogoParser {
             "if","ifelse","test","iftrue","ift","iffalse","iff",
             "repeat","while","until","for","dotimes","do.while","do.until",
             "wait","bye","repcount",
-            "to","end","output","op","stop","define","def",
+            "to","end","define","def",
             "list","first","last","butfirst","bf","butlast","bl","item","pick",
             "sum","modulo","power","minus","random",
             "equalp","equal?","notequalp","notequal?",
@@ -118,8 +118,7 @@ public class LogoParser {
             case IFTRUE          -> parseIfTrueOrFalse(false);
             case IFFALSE         -> parseIfTrueOrFalse(true);
             case FOR             -> parseFor();
-            case OUTPUT          -> parseOutput();
-            case STOP            -> parseStop();
+
             case NEWLINE -> { skipNewlines(); yield null; }
             case EOF     -> null;
 
@@ -318,19 +317,6 @@ public class LogoParser {
         return new Node.ForStatement(forToken, varName, start, end, step, body);
     }
 
-    // OUTPUT expr  /  STOP
-
-    private Node.OutputStatement parseOutput() {
-        final var t     = consume(TokenType.OUTPUT);
-        final var value = parseExpr();
-        return new Node.OutputStatement(t, value);
-    }
-
-    private Node.OutputStatement parseStop() {
-        final var t = consume(TokenType.STOP);
-        return new Node.OutputStatement(t, null);
-    }
-
     // WHILE cond [body]  /  UNTIL cond [body]
 
     private Node parseWhile() {
@@ -488,8 +474,7 @@ public class LogoParser {
     private int inferArity(final TokenType t) {
         return switch (t) {
             case FORWARD, BACK, LEFT, RIGHT,
-                 SETX, SETY, LABEL, SETPENSIZE,
-                 SETPOS, SETPENCOLOR,
+                 SETX, SETY, LABEL, SETWIDTH, SETCOLOR,
                  PRINT, SHOW,
                  FIRST, LAST,
                  BUTFIRST, BUTLAST, THING,
@@ -504,7 +489,7 @@ public class LogoParser {
                  ARC, ELLIPSE, BEFOREP, SUBSTRINGP -> 2;
 
             case PENUP, PENDOWN, CLEAN, CLEARSCREEN, HOME,
-                 HIDETURTLE, SHOWTURTLE, FILL, STOP,
+                 HIDETURTLE, SHOWTURTLE, FILL,
                  PENCOLOR, POS, XCOR, YCOR, HEADING,
                  WRAP, WINDOW, FENCE,
                  SHOWNP, LABELSIZE, PENDOWNP, PENSIZE,
@@ -633,11 +618,11 @@ public class LogoParser {
     private boolean isCommandToken(final TokenType type) {
         return switch (type) {
             case FORWARD, BACK, LEFT, RIGHT,
-                 SETX, SETY, SETXY, SETPOS, SETHEADING,
+                 SETX, SETY, SETXY, SETHEADING,
                  HOME, ARC, ELLIPSE,
                  POS, XCOR, YCOR, HEADING, TOWARDS,
                  WRAP, WINDOW, FENCE,
-                 PENUP, PENDOWN, PENCOLOR, SETPENCOLOR, SETPENSIZE,
+                 PENUP, PENDOWN, PENCOLOR, SETCOLOR, SETWIDTH,
                  CLEAN, CLEARSCREEN, FILL, LABEL, SETLABELHEIGHT, CHANGESHAPE,
                  HIDETURTLE, SHOWTURTLE,
                  SHOWNP, LABELSIZE, PENDOWNP, PENSIZE,
@@ -645,7 +630,7 @@ public class LogoParser {
                  SUM, KEYWORD_MINUS, MODULO, POWER, RANDOM,
                  EQUALP, NOTEQUALP,
                  LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM, PICK,
-                 THING, MAKE, OUTPUT, STOP, DEF, BYE, WAIT, REPCOUNT,
+                 THING, MAKE, DEF, BYE, WAIT, REPCOUNT,
                  WORDP, LISTP, ARRAY, ARRAYP, NUMBERP, EMPTYP, BEFOREP, SUBSTRINGP -> true;
             default -> false;
         };
