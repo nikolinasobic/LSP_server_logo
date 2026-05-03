@@ -30,6 +30,7 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
 
         // go to definition
         caps.setDefinitionProvider(true);
+        caps.setHoverProvider(true);
 
         // syntax highlighting
         SemanticTokensLegend legend = new SemanticTokensLegend(
