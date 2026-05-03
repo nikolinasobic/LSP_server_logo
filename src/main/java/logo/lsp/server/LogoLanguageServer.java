@@ -31,7 +31,7 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
                     LspConstants.TOKEN_TYPE_STRING,    // 4
                     LspConstants.TOKEN_TYPE_COMMENT    // 5
             ),
-            List.of() // no modifiers
+            List.of(LspConstants.TOKEN_MODIFIER_DECLARATION) // index 0 → bit 1
     );
 
     private static final SemanticTokensWithRegistrationOptions SEMANTIC_TOKEN_OPTS =

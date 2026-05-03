@@ -14,7 +14,8 @@ public class SemanticTokenEncoder {
     private static final int VARIABLE    = 2;
     private static final int NUMBER      = 3;
     private static final int STRING      = 4;
-    private static final int NO_MODIFIER = 0;
+    private static final int NO_MODIFIER  = 0;
+    private static final int DECLARATION  = 1; // modifier index 0 → bit 1<<0
 
     public static List<Integer> encode(final String source) {
         final var lexer  = new LogoLexer(source);
@@ -31,7 +32,12 @@ public class SemanticTokenEncoder {
                     ? VARIABLE
                     : mapTokenType(tok.type);
 
-            // track the last non-whitespace token so the MAKE check above spans any newlines
+            // identifier immediately after TO is a procedure declaration name
+            final int modifier = (tok.type == TokenType.IDENTIFIER && prevSignificantType == TokenType.TO)
+                    ? DECLARATION
+                    : NO_MODIFIER;
+
+            // track the last non-whitespace token so the context checks above span any newlines
             if (tok.type != TokenType.NEWLINE && tok.type != TokenType.EOF) {
                 prevSignificantType = tok.type;
             }
@@ -48,7 +54,7 @@ public class SemanticTokenEncoder {
             data.add(deltaCol);
             data.add(length);
             data.add(typeIdx);
-            data.add(NO_MODIFIER);
+            data.add(modifier);
 
             prevLine = tok.line;
             prevCol  = tok.startCol;

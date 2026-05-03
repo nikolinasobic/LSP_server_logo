@@ -15,6 +15,9 @@ public final class LspConstants {
     public static final String TOKEN_TYPE_STRING   = "string";
     public static final String TOKEN_TYPE_COMMENT  = "comment";
 
+    // Semantic token modifier names (indices match SEMANTIC_TOKENS_LEGEND modifier order)
+    public static final String TOKEN_MODIFIER_DECLARATION = "declaration";
+
     // LSP protocol identifiers
     public static final String DIAGNOSTIC_SOURCE = "logo-lsp";
     public static final String MARKUP_MARKDOWN   = "markdown";
