@@ -196,6 +196,34 @@ public class LogoHoverDocs {
                             "Executes *thenBody* if *condition* is true, otherwise executes *elseBody*.  \n" +
                             "```logo\nifelse :x > 0 [ forward :x ] [ back :x ]\n```"),
 
+            Map.entry("test",
+                    "**test** *condition*  \n" +
+                            "Evaluates *condition* and stores the result. Use `iftrue`/`iffalse` to act on it.  \n" +
+                            "```logo\ntest :x > 0\niftrue [ forward :x ]\niffalse [ back :x ]\n```"),
+
+            Map.entry("iftrue",
+                    "**iftrue** *[ body ]* &nbsp;·&nbsp; alias: `ift`  \n" +
+                            "Executes *body* if the result of the last `test` was `true`.  \n" +
+                            "```logo\ntest :x > 0\niftrue [ forward :x ]\n```"),
+
+            Map.entry("ift",
+                    "**ift** *[ body ]* &nbsp;·&nbsp; alias for `iftrue`  \n" +
+                            "Executes *body* if the result of the last `test` was `true`."),
+
+            Map.entry("iffalse",
+                    "**iffalse** *[ body ]* &nbsp;·&nbsp; alias: `iff`  \n" +
+                            "Executes *body* if the result of the last `test` was `false`.  \n" +
+                            "```logo\ntest :x > 0\niffalse [ back :x ]\n```"),
+
+            Map.entry("iff",
+                    "**iff** *[ body ]* &nbsp;·&nbsp; alias for `iffalse`  \n" +
+                            "Executes *body* if the result of the last `test` was `false`."),
+
+            Map.entry("until",
+                    "**until** *condition* *[ body ]*  \n" +
+                            "Executes *body* repeatedly until *condition* becomes true (opposite of `while`).  \n" +
+                            "```logo\nuntil [:x = 0] [ make \"x :x - 1 ]\n```"),
+
             Map.entry("for",
                     "**for** *[ var start end ]* *[ body ]*  \n" +
                             "Loops with *var* running from *start* to *end* (inclusive), stepping by 1 (or optional step).  \n" +
