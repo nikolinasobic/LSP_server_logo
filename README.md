@@ -20,10 +20,15 @@ It enables modern IDE features in editors that support LSP.
 ### Clone repository
 You can clone the project using either SSH or HTTPS:
 #### ssh
+```bash
 git clone git@github.com:nikolinasobic/LSP_server_logo.git
+cd LSP_server_logo
+```
 #### https
+```bash
 git clone https://github.com/nikolinasobic/LSP_server_logo.git
 cd LSP_server_logo
+```
 
 ### Build the Project
 ```bash
