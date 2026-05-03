@@ -3,6 +3,7 @@ package logo.lsp.server;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.*;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
@@ -21,37 +22,38 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
         textDocumentService.setClient(client);
     }
 
+    private static final SemanticTokensLegend SEMANTIC_TOKENS_LEGEND = new SemanticTokensLegend(
+            List.of(
+                    "keyword",    // 0
+                    "function",   // 1
+                    "variable",   // 2
+                    "number",     // 3
+                    "string",     // 4
+                    "comment"     // 5
+            ),
+            List.of() // no modifiers
+    );
+
+    private static final SemanticTokensWithRegistrationOptions SEMANTIC_TOKEN_OPTS =
+            new SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND);
+
+    static {
+        SEMANTIC_TOKEN_OPTS.setFull(true);
+    }
+
+    private static final ServerInfo SERVER_INFO = new ServerInfo("Logo Language Server", "1.0.0");
+
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         ServerCapabilities caps = new ServerCapabilities();
 
-        // full document sync
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
-
-        // go to definition
         caps.setDefinitionProvider(true);
         caps.setHoverProvider(true);
-
-        // syntax highlighting
-        SemanticTokensLegend legend = new SemanticTokensLegend(
-                java.util.List.of(
-                        "keyword",    // 0
-                        "function",   // 1
-                        "variable",   // 2
-                        "number",     // 3
-                        "string",     // 4
-                        "comment"     // 5
-                ),
-                java.util.List.of() // no modifiers
-        );
-        SemanticTokensWithRegistrationOptions semTokenOpts =
-                new SemanticTokensWithRegistrationOptions(legend);
-        semTokenOpts.setFull(true);
-        caps.setSemanticTokensProvider(semTokenOpts);
+        caps.setSemanticTokensProvider(SEMANTIC_TOKEN_OPTS);
 
         InitializeResult result = new InitializeResult(caps);
-        ServerInfo info = new ServerInfo("Logo Language Server", "1.0.0");
-        result.setServerInfo(info);
+        result.setServerInfo(SERVER_INFO);
         return CompletableFuture.completedFuture(result);
     }
 
