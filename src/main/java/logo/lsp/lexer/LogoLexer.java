@@ -6,6 +6,24 @@ import java.util.List;
 import java.util.Map;
 
 public class LogoLexer {
+
+    // Token value constants for single-character and special tokens
+    private static final String TOK_NEWLINE  = "\n";
+    private static final String TOK_LBRACKET = "[";
+    private static final String TOK_RBRACKET = "]";
+    private static final String TOK_LPAREN   = "(";
+    private static final String TOK_RPAREN   = ")";
+    private static final String TOK_PLUS     = "+";
+    private static final String TOK_MINUS    = "-";
+    private static final String TOK_STAR     = "*";
+    private static final String TOK_SLASH    = "/";
+    private static final String TOK_EQUAL    = "=";
+    private static final String TOK_LESS     = "<";
+    private static final String TOK_GREATER  = ">";
+    private static final String TOK_CARET    = "^";
+    private static final String TOK_COLON    = ":";
+    private static final String TOK_EOF      = "";
+
     private static final Map<String, TokenType> KEYWORDS = new HashMap<>();
 
     static {
@@ -114,107 +132,105 @@ public class LogoLexer {
         KEYWORDS.put("minus",        TokenType.MINUS);
 
         // comparison
-        KEYWORDS.put("equalp",       TokenType.EQUALP);
-        KEYWORDS.put("equal?",       TokenType.EQUALP);
-        KEYWORDS.put("notequalp",    TokenType.NOTEQUALP);
-        KEYWORDS.put("notequal?",    TokenType.NOTEQUALP);
-        KEYWORDS.put("lessp",        TokenType.LESSP);
-        KEYWORDS.put("less?",        TokenType.LESSP);
-        KEYWORDS.put("greaterp",     TokenType.GREATERP);
-        KEYWORDS.put("greater?",     TokenType.GREATERP);
-        KEYWORDS.put("lessequalp",   TokenType.LESSEQUALP);
-        KEYWORDS.put("greaterequalp",TokenType.GREATEREQUALP);
+        KEYWORDS.put("equalp",        TokenType.EQUALP);
+        KEYWORDS.put("equal?",        TokenType.EQUALP);
+        KEYWORDS.put("notequalp",     TokenType.NOTEQUALP);
+        KEYWORDS.put("notequal?",     TokenType.NOTEQUALP);
+        KEYWORDS.put("lessp",         TokenType.LESSP);
+        KEYWORDS.put("less?",         TokenType.LESSP);
+        KEYWORDS.put("greaterp",      TokenType.GREATERP);
+        KEYWORDS.put("greater?",      TokenType.GREATERP);
+        KEYWORDS.put("lessequalp",    TokenType.LESSEQUALP);
+        KEYWORDS.put("greaterequalp", TokenType.GREATEREQUALP);
 
         // booleans
-        KEYWORDS.put("true",         TokenType.BOOLEAN);
-        KEYWORDS.put("false",        TokenType.BOOLEAN);
+        KEYWORDS.put("true",  TokenType.BOOLEAN);
+        KEYWORDS.put("false", TokenType.BOOLEAN);
     }
 
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
 
-    private int pos = 0;
-    private int line = 0;
+    private int pos       = 0;
+    private int line      = 0;
     private int lineStart = 0;
 
-    public LogoLexer(String source){
+    public LogoLexer(final String source) {
         this.source = source;
     }
 
-    public List<Token> tokenize(){
-        while(!atEnd()){
+    public List<Token> tokenize() {
+        while (!atEnd()) {
             skipWhitespaceAndComments();
-            if(atEnd())
-                break;
+            if (atEnd()) break;
 
-            char c = peek();
+            final char c = peek();
 
-            if(c =='\n'){
-                int col = pos-lineStart;
-                tokens.add(new Token(TokenType.NEWLINE, "\n", line, col, col+1));
+            if (c == '\n') {
+                final int col = pos - lineStart;
+                tokens.add(new Token(TokenType.NEWLINE, TOK_NEWLINE, line, col, col + 1));
                 advance();
                 line++;
                 lineStart = pos;
-            }else if(c == '"'){
+            } else if (c == '"') {
                 readWordLiteral();
-            }else if(c == ':'){
+            } else if (c == ':') {
                 readVariable();
-            }else if(Character.isDigit(c) || (c =='-' && isDigitAhead())){
+            } else if (Character.isDigit(c) || (c == '-' && isDigitAhead())) {
                 readNumber();
-            }else if(c == '['){
-                emit(TokenType.LBRACKET, "]");
+            } else if (c == '[') {
+                emit(TokenType.LBRACKET, TOK_LBRACKET);
                 advance();
-            }else if(c == ']'){
-                emit(TokenType.RBRACKET, "]");
+            } else if (c == ']') {
+                emit(TokenType.RBRACKET, TOK_RBRACKET);
                 advance();
-            }else if(c == '('){
-                emit(TokenType.LPAREN, "(");
+            } else if (c == '(') {
+                emit(TokenType.LPAREN, TOK_LPAREN);
                 advance();
-            }else if(c == ')'){
-                emit(TokenType.RBRACKET, ")");
+            } else if (c == ')') {
+                emit(TokenType.RBRACKET, TOK_RPAREN);
                 advance();
-            }else if(c == '+'){
-                emit(TokenType.PLUS, "+");
+            } else if (c == '+') {
+                emit(TokenType.PLUS, TOK_PLUS);
                 advance();
-            }else if(c == '-'){
-                emit(TokenType.MINUS, "-");
+            } else if (c == '-') {
+                emit(TokenType.MINUS, TOK_MINUS);
                 advance();
-            }else if(c == '*'){
-                emit(TokenType.STAR, "*");
+            } else if (c == '*') {
+                emit(TokenType.STAR, TOK_STAR);
                 advance();
-            }else if(c == '/'){
-                emit(TokenType.SLASH, "/");
+            } else if (c == '/') {
+                emit(TokenType.SLASH, TOK_SLASH);
                 advance();
-            }else if(c == '='){
-                emit(TokenType.EQUAL_SIGN, "=");
+            } else if (c == '=') {
+                emit(TokenType.EQUAL_SIGN, TOK_EQUAL);
                 advance();
-            }else if(c == '<'){
-                emit(TokenType.LESS, "<");
+            } else if (c == '<') {
+                emit(TokenType.LESS, TOK_LESS);
                 advance();
-            }else if(c == '>'){
-                emit(TokenType.GREATER, ">");
+            } else if (c == '>') {
+                emit(TokenType.GREATER, TOK_GREATER);
                 advance();
-            }else if(c == '^'){
-                emit(TokenType.CARET, "^");
+            } else if (c == '^') {
+                emit(TokenType.CARET, TOK_CARET);
                 advance();
-            }else if(isIdentStart(c)){
+            } else if (isIdentStart(c)) {
                 readIdentifierOrKeyword();
-            }else{
-                int col = pos - lineStart;
-                tokens.add(new Token(TokenType.UNKNOWN, String.valueOf(c), line, col, col+1));
+            } else {
+                final int col = pos - lineStart;
+                tokens.add(new Token(TokenType.UNKNOWN, String.valueOf(c), line, col, col + 1));
                 advance();
             }
         }
-        tokens.add(new Token(TokenType.EOF, "", line, pos-lineStart, pos-lineStart));
-
+        tokens.add(new Token(TokenType.EOF, TOK_EOF, line, pos - lineStart, pos - lineStart));
         return tokens;
     }
 
     private void readWordLiteral() {
-        int startPos = pos;
-        int col = startPos - lineStart;
-        advance(); // get "
-        StringBuilder sb = new StringBuilder();
+        final int startPos = pos;
+        final int col      = startPos - lineStart;
+        advance(); // consume "
+        final var sb = new StringBuilder();
         while (!atEnd() && !Character.isWhitespace(peek()) && peek() != ']' && peek() != ')') {
             sb.append(advance());
         }
@@ -222,8 +238,8 @@ public class LogoLexer {
     }
 
     private void readNumber() {
-        int col = pos - lineStart;
-        StringBuilder sb = new StringBuilder();
+        final int col = pos - lineStart;
+        final var sb  = new StringBuilder();
         if (peek() == '-') sb.append(advance());
         while (!atEnd() && Character.isDigit(peek())) sb.append(advance());
         if (!atEnd() && peek() == '.') {
@@ -233,17 +249,16 @@ public class LogoLexer {
         tokens.add(new Token(TokenType.NUMBER, sb.toString(), line, col, pos - lineStart));
     }
 
-
     private void readVariable() {
-        int startPos = pos;
-        int col = startPos - lineStart;
-        advance(); // get :
-        StringBuilder sb = new StringBuilder();
+        final int startPos = pos;
+        final int col      = startPos - lineStart;
+        advance(); // consume :
+        final var sb = new StringBuilder();
         while (!atEnd() && isIdentPart(peek())) {
             sb.append(advance());
         }
         if (sb.isEmpty()) {
-            tokens.add(new Token(TokenType.COLON, ":", line, col, pos - lineStart));
+            tokens.add(new Token(TokenType.COLON, TOK_COLON, line, col, pos - lineStart));
         } else {
             tokens.add(new Token(TokenType.VARIABLE, sb.toString(), line, col, pos - lineStart));
         }
@@ -251,7 +266,7 @@ public class LogoLexer {
 
     private void skipWhitespaceAndComments() {
         while (!atEnd()) {
-            char c = peek();
+            final char c = peek();
             if (c == ';') {
                 while (!atEnd() && peek() != '\n') advance();
             } else if (c == '\r') {
@@ -265,12 +280,12 @@ public class LogoLexer {
     }
 
     private void readIdentifierOrKeyword() {
-        int col = pos - lineStart;
-        StringBuilder sb = new StringBuilder();
+        final int col = pos - lineStart;
+        final var sb  = new StringBuilder();
         while (!atEnd() && isIdentPart(peek())) sb.append(advance());
-        String word = sb.toString();
-        String lower = word.toLowerCase();
-        TokenType type = KEYWORDS.getOrDefault(lower, TokenType.IDENTIFIER);
+        final String word  = sb.toString();
+        final String lower = word.toLowerCase();
+        final TokenType type = KEYWORDS.getOrDefault(lower, TokenType.IDENTIFIER);
         tokens.add(new Token(type, word, line, col, pos - lineStart));
     }
 
@@ -285,11 +300,12 @@ public class LogoLexer {
     private char advance() {
         return source.charAt(pos++);
     }
-    private boolean isIdentStart(char c) {
+
+    private boolean isIdentStart(final char c) {
         return Character.isLetter(c) || c == '_' || c == '?' || c == '!';
     }
 
-    private boolean isIdentPart(char c) {
+    private boolean isIdentPart(final char c) {
         return Character.isLetterOrDigit(c) || c == '_' || c == '?' || c == '!' || c == '.';
     }
 
@@ -297,8 +313,8 @@ public class LogoLexer {
         return pos + 1 < source.length() && Character.isDigit(source.charAt(pos + 1));
     }
 
-    private void emit(TokenType type, String value) {
-        int col = pos - lineStart;
+    private void emit(final TokenType type, final String value) {
+        final int col = pos - lineStart;
         tokens.add(new Token(type, value, line, col, col + value.length()));
     }
 }

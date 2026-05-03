@@ -8,20 +8,18 @@ import java.util.Map;
 
 public class ParseResult {
     public final Node.Program program;
-
     public final List<ParseError> errors;
-
     public final Map<String, Token> procedureDefinitions;
-
     public final Map<String, Token> variableDefinitions;
 
-    public ParseResult(Node.Program program,
-                       List<ParseError> errors,
-                       Map<String, Token> procedureDefinitions, Map<String, Token> variableDefinitions) {
-        this.program = program;
-        this.errors = errors;
+    public ParseResult(final Node.Program program,
+                       final List<ParseError> errors,
+                       final Map<String, Token> procedureDefinitions,
+                       final Map<String, Token> variableDefinitions) {
+        this.program              = program;
+        this.errors               = errors;
         this.procedureDefinitions = procedureDefinitions;
-        this.variableDefinitions = variableDefinitions;
+        this.variableDefinitions  = variableDefinitions;
     }
 
     @Override

@@ -385,7 +385,7 @@ public class LogoHoverDocs {
      * Returns the markdown hover documentation for the given word (case-insensitive),
      * or null if no documentation is available.
      */
-    public static String get(String word) {
+    public static String get(final String word) {
         return DOCS.get(word.toLowerCase());
     }
 

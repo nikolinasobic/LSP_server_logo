@@ -9,35 +9,36 @@ import java.util.List;
 
 public class SemanticTokenEncoder {
 
-    private static final int KEYWORD  = 0;
-    private static final int FUNCTION = 1;
-    private static final int VARIABLE = 2;
-    private static final int NUMBER   = 3;
-    private static final int STRING   = 4;
+    private static final int KEYWORD     = 0;
+    private static final int FUNCTION    = 1;
+    private static final int VARIABLE    = 2;
+    private static final int NUMBER      = 3;
+    private static final int STRING      = 4;
+    private static final int NO_MODIFIER = 0;
 
-    public static List<Integer> encode(String source) {
-        LogoLexer lexer = new LogoLexer(source);
-        List<Token> tokens = lexer.tokenize();
+    public static List<Integer> encode(final String source) {
+        final var lexer  = new LogoLexer(source);
+        final var tokens = lexer.tokenize();
 
-        List<Integer> data = new ArrayList<>();
+        final var data = new ArrayList<Integer>();
         int prevLine = 0;
         int prevCol  = 0;
 
-        for (Token tok : tokens) {
-            int typeIdx = mapTokenType(tok.type);
+        for (final Token tok : tokens) {
+            final int typeIdx = mapTokenType(tok.type);
             if (typeIdx < 0) continue;
 
-            int length = tok.endCol - tok.startCol;
+            final int length = tok.endCol - tok.startCol;
             if (length <= 0) continue;
 
-            int deltaLine = tok.line - prevLine;
-            int deltaCol  = deltaLine == 0 ? tok.startCol - prevCol : tok.startCol;
+            final int deltaLine = tok.line - prevLine;
+            final int deltaCol  = deltaLine == 0 ? tok.startCol - prevCol : tok.startCol;
 
             data.add(deltaLine);
             data.add(deltaCol);
             data.add(length);
             data.add(typeIdx);
-            data.add(0); // no modifiers
+            data.add(NO_MODIFIER);
 
             prevLine = tok.line;
             prevCol  = tok.startCol;
@@ -46,7 +47,7 @@ public class SemanticTokenEncoder {
         return data;
     }
 
-    private static int mapTokenType(TokenType t) {
+    private static int mapTokenType(final TokenType t) {
         return switch (t) {
             case FORWARD, BACK, LEFT, RIGHT,
                  PENUP, PENDOWN, PENCOLOR, SETPENCOLOR, SETPENSIZE,
@@ -72,5 +73,4 @@ public class SemanticTokenEncoder {
             default         -> -1;
         };
     }
-
 }
