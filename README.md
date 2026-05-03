@@ -26,7 +26,9 @@ git clone https://github.com/nikolinasobic/LSP_server_logo.git
 cd LSP_server_logo
 
 ### Build the Project
+```bash
 ./gradlew build
+```
 
 After the build completes, the .jar file will be generated in:
 
@@ -48,20 +50,22 @@ To use this server in IntelliJ IDEA, install the LSP4IJ plugin:
 Navigate to:
 
 Settings → Languages & Frameworks → Language Servers
-1. click "+" to add a new server (prva slika ovde0)
+1. click "+" to add a new server
+   ![](images/logoserver1..png)
 2. Set the following:
 - Name: LOGO (or any preffered name)
 - Command:
-  java -jar /absolute/path/to/your-server.jar
+  `java -jar /path/to/server.jar`
 The .jar file is located in:
 <project-root>/build/libs/
 To copy the absolute path in Intelij:
-- Right-click tje .jar file
+- Right-click the .jar file
 - Select Copy Path/Reference->Absolute Path
 3. Configure
 - File type
+![](images/filetype.png)
 - File name patterns (*.logo)
-- (skrinsot ovde)
+- ![](images/filenamepattern.png)
 4. Apply changes and restart IDEA
 
 ## Usage
@@ -71,4 +75,3 @@ After completing the setup:
 - The language server should automatically activate
 - Features like syntax highlighting, hover, autocomplete, and navigation will be available
 
-(slika cetvrta ovde)
