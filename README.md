@@ -23,11 +23,12 @@ You can clone the project using either SSH or HTTPS:
 ```bash
 git clone git@github.com:nikolinasobic/LSP_server_logo.git
 ```
+
 #### https
 ```bash
 git clone https://github.com/nikolinasobic/LSP_server_logo.git
 ```
-
+##### After cloning
 ```bash
 cd LSP_server_logo
 ```
