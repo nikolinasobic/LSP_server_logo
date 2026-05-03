@@ -15,12 +15,14 @@ import java.util.concurrent.CompletableFuture;
 
 public class LogoTextDocumentService implements TextDocumentService {
 
-    private static final String NEWLINE          = "\n";
-    private static final String PROC_SIG_START   = "```logo\nto ";
-    private static final String PROC_SIG_END     = "\n...\nend\n```";
-    private static final String PROC_PARAM_SEP   = " :";
-    private static final String HOVER_PROC_FMT   = "**%s** *(user-defined procedure)*  \n%s";
-    private static final String HOVER_VAR_FMT    = "**:%s** *(variable)*";
+    private static final String NEWLINE        = "\n";
+    private static final String PROC_SIG_START = "```logo\nto ";
+    private static final String PROC_SIG_END   = "\n...\nend\n```";
+    private static final String PROC_PARAM_SEP = " :";
+    private static final String HOVER_PROC_FMT = "**%s** *(user-defined procedure)*  \n%s";
+    private static final String HOVER_VAR_FMT  = "**:%s** *(variable)*";
+
+    private record WordSpan(String text, int start, int end, boolean isVariable) {}
 
     private final DocumentStore store;
     private LanguageClient client;
@@ -79,17 +81,16 @@ public class LogoTextDocumentService implements TextDocumentService {
         if (result == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        final var source     = store.getSource(uri);
-        final var onVariable = cursorOnVariable(source, pos.getLine(), pos.getCharacter());
-        final var word       = wordAt(source, pos.getLine(), pos.getCharacter());
+        final var source = store.getSource(uri);
+        final var span   = spanAt(source, pos.getLine(), pos.getCharacter());
 
-        if (word == null || word.isEmpty())
+        if (span == null || span.text().isEmpty())
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        final var lower = word.toLowerCase();
+        final var lower = span.text().toLowerCase();
 
         // variable reference
-        if (onVariable || result.variableDefinitions.containsKey(lower)) {
+        if (span.isVariable() || result.variableDefinitions.containsKey(lower)) {
             final var varToken = result.variableDefinitions.get(lower);
             if (varToken != null) {
                 return CompletableFuture.completedFuture(
@@ -113,18 +114,20 @@ public class LogoTextDocumentService implements TextDocumentService {
         final var source = store.getSource(uri);
         final var result = store.get(uri);
         final var pos    = params.getPosition();
-        final var word   = wordAt(source, pos.getLine(), pos.getCharacter());
+        final var span   = spanAt(source, pos.getLine(), pos.getCharacter());
 
-        if (word == null || word.isEmpty())
+        if (span == null || span.text().isEmpty())
             return CompletableFuture.completedFuture(null);
 
-        final var lower = word.toLowerCase();
+        final var lower = span.text().toLowerCase();
+        final var range = new Range(new Position(pos.getLine(), span.start()),
+                                    new Position(pos.getLine(), span.end()));
 
         // built-in command documentation
         final var doc = LogoHoverDocs.get(lower);
         if (doc != null) {
             final var hover = new Hover(new MarkupContent(LspConstants.MARKUP_MARKDOWN, doc));
-            hover.setRange(wordRange(source, pos.getLine(), pos.getCharacter()));
+            hover.setRange(range);
             return CompletableFuture.completedFuture(hover);
         }
 
@@ -135,16 +138,15 @@ public class LogoTextDocumentService implements TextDocumentService {
                 final var sig   = buildProcedureSignature(lower, result);
                 final var hover = new Hover(new MarkupContent(LspConstants.MARKUP_MARKDOWN,
                         String.format(HOVER_PROC_FMT, lower, sig)));
-                hover.setRange(wordRange(source, pos.getLine(), pos.getCharacter()));
+                hover.setRange(range);
                 return CompletableFuture.completedFuture(hover);
             }
 
             // variable
-            final var onVar = cursorOnVariable(source, pos.getLine(), pos.getCharacter());
-            if (onVar && result.variableDefinitions.containsKey(lower)) {
+            if (span.isVariable() && result.variableDefinitions.containsKey(lower)) {
                 final var hover = new Hover(new MarkupContent(LspConstants.MARKUP_MARKDOWN,
                         String.format(HOVER_VAR_FMT, lower)));
-                hover.setRange(wordRange(source, pos.getLine(), pos.getCharacter()));
+                hover.setRange(range);
                 return CompletableFuture.completedFuture(hover);
             }
         }
@@ -165,32 +167,11 @@ public class LogoTextDocumentService implements TextDocumentService {
         return PROC_SIG_START + name + PROC_SIG_END;
     }
 
-    private Range wordRange(final String source, final int line, final int character) {
-        final var lines = source.split(NEWLINE, -1);
-        if (line >= lines.length)
-            return new Range(new Position(line, character), new Position(line, character));
-        final String ln = lines[line];
-        int start = character;
-        while (start > 0 && isIdentChar(ln.charAt(start - 1))) start--;
-        int end = character;
-        while (end < ln.length() && isIdentChar(ln.charAt(end))) end++;
-        return new Range(new Position(line, start), new Position(line, end));
-    }
-
     private Location tokenLocation(final String uri, final logo.lsp.lexer.Token token) {
         final var range = new Range(
                 new Position(token.line, token.startCol),
                 new Position(token.line, token.endCol));
         return new Location(uri, range);
-    }
-
-    private boolean cursorOnVariable(final String source, final int line, final int character) {
-        final var lines = source.split(NEWLINE, -1);
-        if (line >= lines.length) return false;
-        final String ln = lines[line];
-        int start = character;
-        while (start > 0 && isIdentChar(ln.charAt(start - 1))) start--;
-        return start > 0 && ln.charAt(start - 1) == ':';
     }
 
     @Override
@@ -202,18 +183,18 @@ public class LogoTextDocumentService implements TextDocumentService {
         return CompletableFuture.completedFuture(new SemanticTokens(data));
     }
 
-    private String wordAt(final String source, final int line, final int character) {
+    private WordSpan spanAt(final String source, final int line, final int character) {
+        if (source == null) return null;
         final var lines = source.split(NEWLINE, -1);
         if (line >= lines.length) return null;
         final String ln = lines[line];
         if (character > ln.length()) return null;
-
         int start = character;
         while (start > 0 && isIdentChar(ln.charAt(start - 1))) start--;
         int end = character;
         while (end < ln.length() && isIdentChar(ln.charAt(end))) end++;
-
-        return ln.substring(start, end);
+        final boolean isVariable = start > 0 && ln.charAt(start - 1) == ':';
+        return new WordSpan(ln.substring(start, end), start, end, isVariable);
     }
 
     private boolean isIdentChar(final char c) {
