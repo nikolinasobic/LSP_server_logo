@@ -58,14 +58,6 @@ public class LogoTextDocumentService implements TextDocumentService{
     }
 
     @Override
-    public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> declaration(
-            DeclarationParams params) {
-        return resolveDefinition(
-                params.getTextDocument().getUri(),
-                params.getPosition());
-    }
-
-    @Override
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(
             DefinitionParams params) {
         return resolveDefinition(

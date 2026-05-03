@@ -63,13 +63,12 @@ public class SemanticTokenEncoder {
                  SENTENCE, FPUT, LPUT,
                  AND, OR, NOT,
                  SUM, DIFFERENCE, PRODUCT, QUOTIENT, REMAINDER, MODULO, POWER, SQRT, ABS, MINUS,
-                 EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP
+                 EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP, BOOLEAN
                     -> KEYWORD;
             case IDENTIFIER -> FUNCTION;
             case VARIABLE   -> VARIABLE;
             case NUMBER     -> NUMBER;
             case STRING     -> STRING;
-            case BOOLEAN    -> KEYWORD;
             default         -> -1;
         };
     }
