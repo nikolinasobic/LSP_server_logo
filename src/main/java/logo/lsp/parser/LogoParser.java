@@ -35,14 +35,13 @@ public class LogoParser {
     private static final String ERR_EXPECTED_RBRACKET          = "Expected ']'";
     private static final String ERR_EXPECTED_RPAREN            = "Expected ')'";
     private static final String ERR_MISSING_RBRACKET           = "Missing ']'";
+    private static final String ERR_EXPECTED_DEFINE_SPEC       = "Expected '[[params][body]]' after DEFINE name";
+    private static final String ERR_EXPECTED_RBRACKET_DEFINE   = "Expected ']' to close DEFINE spec";
 
-    // max value for forever
-    private static final String FOREVER_COUNT_VALUE = "999999";
-
-    // for did you mean? suggestions (all built-in commands)
-    private static final List<String> BUILTIN_NAMES = List.of(
+    // for did you mean? suggestions and autocomplete
+    public static final List<String> BUILTIN_NAMES = List.of(
             "forward","fd","back","bk","left","lt","right","rt",
-            "setx","sety","setxy","setpos","setheading","seth","sh","setspeed","home","arc","ellipse",
+            "setx","sety","setxy","setpos","setheading","seth","sh","home","arc","ellipse",
             "pos","xcor","ycor","heading","towards",
             "wrap","window","fence","hideturtle","ht","showturtle","st",
             "shownp","shown?",
@@ -52,25 +51,22 @@ public class LogoParser {
             "pendownp","pendown?","pensize","labelsize",
             "clean","clearscreen","cs",
             "make","local","thing","name","localmake",
-            "print","pr","show","type","readword","readlist",
+            "print","pr","show","readword","readlist",
             "if","ifelse","test","iftrue","ift","iffalse","iff",
-            "repeat","forever","while","until","for","dotimes","do.while","do.until",
+            "repeat","while","until","for","dotimes","do.while","do.until",
             "wait","bye","repcount",
             "to","end","output","op","stop","define","def",
-            "run","apply",
-            "list","first","last","butfirst","bf","butlast","bl","item","count",
-            "sentence","se","fput","lput","pick",
-            "and","or","not",
-            "sum","difference","product","quotient","remainder","modulo","power","sqrt","abs","minus","random",
+            "list","first","last","butfirst","bf","butlast","bl","item","pick",
+            "sum","modulo","power","minus","random",
             "equalp","equal?","notequalp","notequal?",
-            "lessp","less?","greaterp","greater?","lessequalp","greaterequalp",
             "wordp","word?","listp","list?","array","arrayp","array?","numberp","number?","emptyp","empty?",
             "beforep","before?","substringp","substring?"
     );
 
-    private final Map<String, Token>   procedureDefinitions = new LinkedHashMap<>();
-    private final Map<String, Integer> procedureArities     = new LinkedHashMap<>();
-    private final Map<String, Token>   variableDefinitions  = new LinkedHashMap<>();
+    private final Map<String, Token>       procedureDefinitions = new LinkedHashMap<>();
+    private final Map<String, Integer>     procedureArities     = new LinkedHashMap<>();
+    private final Map<String, List<String>> procedureParams     = new LinkedHashMap<>();
+    private final Map<String, Token>       variableDefinitions  = new LinkedHashMap<>();
 
     private final List<Token> tokens;
     private int pos = 0;
@@ -97,6 +93,7 @@ public class LogoParser {
         return new ParseResult(new Node.Program(stmts, eof), errors,
                 Collections.unmodifiableList(tokens),
                 Collections.unmodifiableMap(procedureDefinitions),
+                Collections.unmodifiableMap(procedureParams),
                 Collections.unmodifiableMap(variableDefinitions));
     }
 
@@ -111,7 +108,6 @@ public class LogoParser {
             case LOCALMAKE       -> parseLocalMake();
             case NAME            -> parseName();
             case REPEAT          -> parseRepeat();
-            case FOREVER         -> parseForever();
             case WHILE, UNTIL    -> parseWhile();
             case DO_WHILE, DO_UNTIL -> parseDoWhileOrUntil();
             case DOTIMES         -> parseDotimes();
@@ -180,8 +176,7 @@ public class LogoParser {
         final int arity     = inferArity(nameToken.type());
         final var args      = new ArrayList<Node>();
         for (int i = 0; i < arity; i++) {
-            if (atEnd() || check(TokenType.NEWLINE) || check(TokenType.RBRACKET)
-                    || check(TokenType.EOF)) {
+            if (atEnd() || check(TokenType.NEWLINE) || check(TokenType.RBRACKET)) {
                 errors.add(ParseError.error(
                         String.format(ERR_COMMAND_ARITY_FMT, nameToken.value(), arity, i),
                         nameToken));
@@ -194,17 +189,16 @@ public class LogoParser {
 
     private String closestBuiltin(final String input) {
         if (input.length() < 2) return null;
-        String best    = null;
-        int bestDist   = Integer.MAX_VALUE;
-        final var candidates = new ArrayList<>(BUILTIN_NAMES);
-        candidates.addAll(procedureDefinitions.keySet());
-        for (final String candidate : candidates) {
-            final int d         = levenshtein(input, candidate);
-            final int threshold = Math.max(2, input.length() / 3);
-            if (d < bestDist && d <= threshold) {
-                bestDist = d;
-                best     = candidate;
-            }
+        String best  = null;
+        int bestDist = Integer.MAX_VALUE;
+        final int threshold = Math.max(2, input.length() / 3);
+        for (final String candidate : BUILTIN_NAMES) {
+            final int d = levenshtein(input, candidate);
+            if (d < bestDist && d <= threshold) { bestDist = d; best = candidate; }
+        }
+        for (final String candidate : procedureDefinitions.keySet()) {
+            final int d = levenshtein(input, candidate);
+            if (d < bestDist && d <= threshold) { bestDist = d; best = candidate; }
         }
         return best;
     }
@@ -232,7 +226,8 @@ public class LogoParser {
         final var toToken   = consume(TokenType.TO);
         skipNewlines();
         final var nameToken = expectProcedureName(ERR_EXPECTED_PROC_NAME);
-        procedureDefinitions.put(nameToken.value().toLowerCase(), nameToken);
+        final var name      = nameToken.value().toLowerCase();
+        procedureDefinitions.put(name, nameToken);
 
         final var params = new ArrayList<String>();
         while (check(TokenType.VARIABLE)) {
@@ -241,13 +236,13 @@ public class LogoParser {
             params.add(paramName);
             variableDefinitions.putIfAbsent(paramName, paramToken);
         }
-        procedureArities.put(nameToken.value().toLowerCase(), params.size());
-        skipNewlines();
+        procedureArities.put(name, params.size());
+        procedureParams.put(name, Collections.unmodifiableList(params));
 
         final var body = new ArrayList<Node>();
-        while (!atEnd() && !check(TokenType.END)) {
+        while (true) {
             skipNewlines();
-            if (check(TokenType.END) || atEnd()) break;
+            if (atEnd() || check(TokenType.END)) break;
             try {
                 final var stmt = parseStatement();
                 if (stmt != null) body.add(stmt);
@@ -255,7 +250,6 @@ public class LogoParser {
                 errors.add(e.error);
                 synchronize();
             }
-            skipNewlines();
         }
 
         final Token endToken;
@@ -290,17 +284,6 @@ public class LogoParser {
         final var count       = parseExpr();
         final var body        = parseBlock();
         return new Node.RepeatStatement(repeatToken, count, body);
-    }
-
-    // FOREVER [ body ]
-
-    private Node parseForever() {
-        final var token    = consume(TokenType.FOREVER);
-        final var body     = parseBlock();
-        final var infinity = new Node.NumberLiteral(
-                new Token(TokenType.NUMBER, FOREVER_COUNT_VALUE,
-                        token.line(), token.startCol(), token.endCol()));
-        return new Node.RepeatStatement(token, infinity, body);
     }
 
     // IF cond [ then ]   /   IFELSE cond [ then ] [ else ]
@@ -423,28 +406,31 @@ public class LogoParser {
 
         // consume outer [  of  [[params][body]]
         skipNewlines();
-        expect(TokenType.LBRACKET, "Expected '[[params][body]]' after DEFINE name");
+        expect(TokenType.LBRACKET, ERR_EXPECTED_DEFINE_SPEC);
 
-        // parse [param ...] as a list literal — each element is an IDENTIFIER
+        // parse [param ...] as a list literal ( each element is an IDENTIFIER )
         skipNewlines();
         final var paramsList = parsePrimary();
         int arity = 0;
+        final var paramNames = new ArrayList<String>();
         if (paramsList instanceof Node.ListLiteral params) {
             arity = params.elements.size();
             for (final Node elem : params.elements) {
                 if (elem instanceof Node.CommandCall call) {
+                    paramNames.add(call.name);
                     variableDefinitions.putIfAbsent(call.name, call.token);
                 }
             }
         }
         procedureArities.put(name, arity);
+        procedureParams.put(name, Collections.unmodifiableList(paramNames));
 
         // parse [body] properly as statements so variable definitions are registered
         skipNewlines();
         final var body = parseBlock();
 
         // close outer ]
-        expect(TokenType.RBRACKET, "Expected ']' to close DEFINE spec");
+        expect(TokenType.RBRACKET, ERR_EXPECTED_RBRACKET_DEFINE);
         return new Node.ProcedureDef(token, nameToken, Collections.emptyList(), body, null);
     }
 
@@ -502,20 +488,19 @@ public class LogoParser {
     private int inferArity(final TokenType t) {
         return switch (t) {
             case FORWARD, BACK, LEFT, RIGHT,
-                 SETX, SETY, LABEL, SETSPEED, SETPENSIZE,
+                 SETX, SETY, LABEL, SETPENSIZE,
                  SETPOS, SETPENCOLOR,
-                 PRINT, SHOW, TYPE,
-                 SQRT, ABS, NOT, FIRST, LAST,
-                 BUTFIRST, BUTLAST, COUNT, THING,
+                 PRINT, SHOW,
+                 FIRST, LAST,
+                 BUTFIRST, BUTLAST, THING,
                  SETHEADING, TOWARDS, SETLABELHEIGHT, CHANGESHAPE,
                  DEF, WAIT, RANDOM, PICK,
                  WORDP, LISTP, ARRAY, ARRAYP, NUMBERP, EMPTYP -> 1;
 
             case SETXY,
-                 SUM, DIFFERENCE, PRODUCT, QUOTIENT, REMAINDER, MODULO, POWER, MINUS,
-                 EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP,
-                 AND, OR, FPUT, LPUT, ITEM,
-                 SENTENCE, LIST,
+                 SUM, KEYWORD_MINUS, MODULO, POWER,
+                 EQUALP, NOTEQUALP,
+                 ITEM, LIST,
                  ARC, ELLIPSE, BEFOREP, SUBSTRINGP -> 2;
 
             case PENUP, PENDOWN, CLEAN, CLEARSCREEN, HOME,
@@ -536,9 +521,9 @@ public class LogoParser {
         expect(TokenType.LBRACKET, ERR_EXPECTED_LBRACKET);
         skipNewlines();
         final var stmts = new ArrayList<Node>();
-        while (!atEnd() && !check(TokenType.RBRACKET)) {
+        while (true) {
             skipNewlines();
-            if (check(TokenType.RBRACKET) || atEnd()) break;
+            if (atEnd() || check(TokenType.RBRACKET)) break;
             try {
                 final var s = parseStatement();
                 if (s != null) stmts.add(s);
@@ -546,7 +531,6 @@ public class LogoParser {
                 errors.add(e.error);
                 synchronize();
             }
-            skipNewlines();
         }
         if (check(TokenType.RBRACKET)) {
             advance();
@@ -649,7 +633,7 @@ public class LogoParser {
     private boolean isCommandToken(final TokenType type) {
         return switch (type) {
             case FORWARD, BACK, LEFT, RIGHT,
-                 SETX, SETY, SETXY, SETPOS, SETHEADING, SETSPEED,
+                 SETX, SETY, SETXY, SETPOS, SETHEADING,
                  HOME, ARC, ELLIPSE,
                  POS, XCOR, YCOR, HEADING, TOWARDS,
                  WRAP, WINDOW, FENCE,
@@ -657,14 +641,11 @@ public class LogoParser {
                  CLEAN, CLEARSCREEN, FILL, LABEL, SETLABELHEIGHT, CHANGESHAPE,
                  HIDETURTLE, SHOWTURTLE,
                  SHOWNP, LABELSIZE, PENDOWNP, PENSIZE,
-                 PRINT, SHOW, TYPE, READWORD, READLIST,
-                 SUM, DIFFERENCE, PRODUCT, QUOTIENT, REMAINDER, MODULO, POWER,
-                 SQRT, ABS, MINUS, NOT, RANDOM,
-                 EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP,
-                 AND, OR,
-                 LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM, COUNT, SENTENCE, FPUT, LPUT, PICK,
+                 PRINT, SHOW, READWORD, READLIST,
+                 SUM, KEYWORD_MINUS, MODULO, POWER, RANDOM,
+                 EQUALP, NOTEQUALP,
+                 LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM, PICK,
                  THING, MAKE, OUTPUT, STOP, DEF, BYE, WAIT, REPCOUNT,
-                 RUN, APPLY,
                  WORDP, LISTP, ARRAY, ARRAYP, NUMBERP, EMPTYP, BEFOREP, SUBSTRINGP -> true;
             default -> false;
         };

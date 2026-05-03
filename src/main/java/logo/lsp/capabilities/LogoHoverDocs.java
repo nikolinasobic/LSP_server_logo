@@ -97,11 +97,6 @@ public class LogoHoverDocs {
                             "Moves the turtle to the center of the screen (0, 0) and resets its heading to 0°.  \n" +
                             "```logo\nhome\n```"),
 
-            Map.entry("setspeed",
-                    "**setspeed** *speed*  \n" +
-                            "Sets the turtle's movement speed (0 = instant, higher = slower animation).  \n" +
-                            "```logo\nsetspeed 5\n```"),
-
             // ── Motion queries ────────────────────────────────────────────────────
 
             Map.entry("pos",
@@ -314,11 +309,6 @@ public class LogoHoverDocs {
                             "Executes *body* exactly *count* times.  \n" +
                             "```logo\nrepeat 4 [\n    forward 100\n    right 90\n]\n```"),
 
-            Map.entry("forever",
-                    "**forever** *[ body ]*  \n" +
-                            "Executes *body* in an infinite loop. Use `stop` inside to exit.  \n" +
-                            "```logo\nforever [\n    forward 10\n    right 5\n]\n```"),
-
             Map.entry("if",
                     "**if** *condition* *[ body ]*  \n" +
                             "Executes *body* only if *condition* is `true`.  \n" +
@@ -394,7 +384,7 @@ public class LogoHoverDocs {
 
             Map.entry("repcount",
                     "**repcount**  \n" +
-                            "Outputs the current iteration number inside the innermost `repeat` or `forever` loop.  \n" +
+                            "Outputs the current iteration number inside the innermost `repeat` loop.  \n" +
                             "```logo\nrepeat 4 [ show repcount ]\n```"),
 
             Map.entry("stop",
@@ -448,11 +438,6 @@ public class LogoHoverDocs {
                             "Prints *value* with its type delimiters (lists shown with brackets).  \n" +
                             "```logo\nshow [1 2 3]   ; prints [1 2 3]\n```"),
 
-            Map.entry("type",
-                    "**type** *value*  \n" +
-                            "Prints *value* without a trailing newline.  \n" +
-                            "```logo\ntype \"Hello  type \" \"  type \"World\n```"),
-
             Map.entry("readword",
                     "**readword**  \n" +
                             "Prompts the user for a line of input and outputs it as a single word (spaces included).  \n" +
@@ -470,40 +455,10 @@ public class LogoHoverDocs {
                             "Returns *a* + *b*. Equivalent to `a + b`.  \n" +
                             "```logo\nprint sum 3 4   ; prints 7\n```"),
 
-            Map.entry("difference",
-                    "**difference** *a* *b*  \n" +
-                            "Returns *a* - *b*.  \n" +
-                            "```logo\nprint difference 10 3   ; prints 7\n```"),
-
             Map.entry("minus",
                     "**minus** *a* *b*  \n" +
                             "Returns *a* - *b*. Equivalent to `a - b`.  \n" +
                             "```logo\nprint minus 8 2   ; prints 6\n```"),
-
-            Map.entry("product",
-                    "**product** *a* *b*  \n" +
-                            "Returns *a* × *b*.  \n" +
-                            "```logo\nprint product 4 5   ; prints 20\n```"),
-
-            Map.entry("quotient",
-                    "**quotient** *a* *b*  \n" +
-                            "Returns *a* ÷ *b* (integer division).  \n" +
-                            "```logo\nprint quotient 10 3   ; prints 3\n```"),
-
-            Map.entry("remainder",
-                    "**remainder** *a* *b*  \n" +
-                            "Returns the remainder of *a* ÷ *b*.  \n" +
-                            "```logo\nprint remainder 10 3   ; prints 1\n```"),
-
-            Map.entry("sqrt",
-                    "**sqrt** *n*  \n" +
-                            "Returns the square root of *n*.  \n" +
-                            "```logo\nprint sqrt 16   ; prints 4\n```"),
-
-            Map.entry("abs",
-                    "**abs** *n*  \n" +
-                            "Returns the absolute value of *n*.  \n" +
-                            "```logo\nprint abs -5   ; prints 5\n```"),
 
             Map.entry("power",
                     "**power** *base* *exp*  \n" +
@@ -515,34 +470,17 @@ public class LogoHoverDocs {
                             "Returns a random integer from 0 to *n*−1.  \n" +
                             "```logo\nprint random 10   ; prints 0..9\n```"),
 
-            // ── Comparison / logic ────────────────────────────────────────────────
+            // ── Comparison ────────────────────────────────────────────────────────
 
             Map.entry("equalp",
                     "**equalp** *a* *b* &nbsp;·&nbsp; alias: `equal?`  \n" +
                             "Returns `true` if *a* equals *b*, otherwise `false`.  \n" +
                             "```logo\nif equalp :x 0 [ print \"zero ]\n```"),
 
-            Map.entry("lessp",
-                    "**lessp** *a* *b* &nbsp;·&nbsp; alias: `less?`  \n" +
-                            "Returns `true` if *a* < *b*."),
-
-            Map.entry("greaterp",
-                    "**greaterp** *a* *b* &nbsp;·&nbsp; alias: `greater?`  \n" +
-                            "Returns `true` if *a* > *b*."),
-
-            Map.entry("and",
-                    "**and** *a* *b*  \n" +
-                            "Returns `true` if both *a* and *b* are true.  \n" +
-                            "```logo\nif and :x > 0 :y > 0 [ print \"both positive ]\n```"),
-
-            Map.entry("or",
-                    "**or** *a* *b*  \n" +
-                            "Returns `true` if at least one of *a* or *b* is true."),
-
-            Map.entry("not",
-                    "**not** *value*  \n" +
-                            "Returns the logical negation of *value*.  \n" +
-                            "```logo\nif not :done [ repeat 1 [ forward 10 ] ]\n```"),
+            Map.entry("notequalp",
+                    "**notequalp** *a* *b* &nbsp;·&nbsp; alias: `notequal?`  \n" +
+                            "Returns `true` if *a* does not equal *b*.  \n" +
+                            "```logo\nnotequalp \"no \"yes\n```"),
 
             // ── List operations ───────────────────────────────────────────────────
 
@@ -571,35 +509,10 @@ public class LogoHoverDocs {
                             "Returns *list* without its last element.  \n" +
                             "```logo\nprint butlast [1 2 3]   ; prints [1 2]\n```"),
 
-            Map.entry("count",
-                    "**count** *list*  \n" +
-                            "Returns the number of elements in *list*.  \n" +
-                            "```logo\nprint count [1 2 3]   ; prints 3\n```"),
-
             Map.entry("item",
                     "**item** *index* *list*  \n" +
                             "Returns the element at position *index* (1-based) in *list*.  \n" +
                             "```logo\nprint item 2 [10 20 30]   ; prints 20\n```"),
-
-            Map.entry("sentence",
-                    "**sentence** *a* *b* &nbsp;·&nbsp; alias: `se`  \n" +
-                            "Combines *a* and *b* into a flat list.  \n" +
-                            "```logo\nprint sentence [1 2] [3 4]   ; prints [1 2 3 4]\n```"),
-
-            Map.entry("fput",
-                    "**fput** *item* *list*  \n" +
-                            "Returns a new list with *item* prepended.  \n" +
-                            "```logo\nprint fput 0 [1 2 3]   ; prints [0 1 2 3]\n```"),
-
-            Map.entry("lput",
-                    "**lput** *item* *list*  \n" +
-                            "Returns a new list with *item* appended.  \n" +
-                            "```logo\nprint lput 4 [1 2 3]   ; prints [1 2 3 4]\n```"),
-
-            Map.entry("run",
-                    "**run** *[ commands ]*  \n" +
-                            "Executes *commands* as if they were typed directly.  \n" +
-                            "```logo\nrun [ forward 100  right 90 ]\n```"),
 
             Map.entry("pick",
                     "**pick** *list*  \n" +

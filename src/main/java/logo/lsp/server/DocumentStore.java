@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DocumentStore {
 
-    record DocumentState(String source, ParseResult result) {}
+    record DocumentState(String source, String[] lines, ParseResult result) {}
 
     private final Map<String, DocumentState> documents = new ConcurrentHashMap<>();
 
@@ -18,7 +18,7 @@ public class DocumentStore {
         final var tokens = lexer.tokenize();
         final var parser = new LogoParser(tokens);
         final var result = parser.parse();
-        documents.put(uri, new DocumentState(text, result));
+        documents.put(uri, new DocumentState(text, text.split("\n", -1), result));
         return result;
     }
 

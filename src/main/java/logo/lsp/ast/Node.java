@@ -12,8 +12,6 @@ public abstract class Node {
     }
 
     public static class Program extends Node {
-        private static final String TO_STRING_FMT = "Program{statements=%s}";
-
         public final List<Node> statements;
 
         public Program(final List<Node> statements, final Token token) {
@@ -23,7 +21,7 @@ public abstract class Node {
 
         @Override
         public String toString() {
-            return String.format(TO_STRING_FMT, statements);
+            return String.format("Program{statements=%s}", statements);
         }
     }
 

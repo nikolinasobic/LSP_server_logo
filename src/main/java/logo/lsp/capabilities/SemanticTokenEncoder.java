@@ -62,7 +62,7 @@ public class SemanticTokenEncoder {
     private static int mapTokenType(final TokenType t) {
         return switch (t) {
             case FORWARD, BACK, LEFT, RIGHT,
-                 SETX, SETY, SETXY, SETPOS, SETHEADING, SETSPEED,
+                 SETX, SETY, SETXY, SETPOS, SETHEADING,
                  HOME, ARC, ELLIPSE,
                  POS, XCOR, YCOR, HEADING, TOWARDS,
                  WRAP, WINDOW, FENCE,
@@ -71,18 +71,16 @@ public class SemanticTokenEncoder {
                  HIDETURTLE, SHOWTURTLE,
                  SHOWNP, LABELSIZE, PENDOWNP, PENSIZE,
                  MAKE, LOCAL, THING, NAME, LOCALMAKE,
-                 PRINT, SHOW, TYPE, READWORD, READLIST,
+                 PRINT, SHOW, READWORD, READLIST,
                  IF, IFELSE, TEST, IFTRUE, IFFALSE,
-                 REPEAT, FOREVER, WHILE, UNTIL, FOR,
+                 REPEAT, WHILE, UNTIL, FOR,
                  DOTIMES, DO_WHILE, DO_UNTIL, WAIT, BYE, REPCOUNT,
                  TO, END, OUTPUT, STOP, DEFINE, DEF,
-                 RUN, APPLY,
-                 LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM, COUNT,
-                 SENTENCE, FPUT, LPUT, PICK,
-                 AND, OR, NOT,
-                 SUM, DIFFERENCE, PRODUCT, QUOTIENT, REMAINDER, MODULO, POWER, SQRT, ABS, MINUS,
+                 LIST, FIRST, LAST, BUTFIRST, BUTLAST, ITEM,
+                 PICK,
+                 SUM, KEYWORD_MINUS, MODULO, POWER,
                  RANDOM,
-                 EQUALP, NOTEQUALP, LESSP, GREATERP, LESSEQUALP, GREATEREQUALP,
+                 EQUALP, NOTEQUALP,
                  WORDP, LISTP, ARRAY, ARRAYP, NUMBERP, EMPTYP, BEFOREP, SUBSTRINGP,
                  BOOLEAN
                     -> KEYWORD;
