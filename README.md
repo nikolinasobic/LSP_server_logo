@@ -65,7 +65,7 @@ To copy the absolute path in Intelij:
 - File type
 ![](images/filetype.png)
 - File name patterns (*.logo)
-- ![](images/filenamepattern.png)
+![](images/filenamepattern.png)
 4. Apply changes and restart IDEA
 
 ## Usage
@@ -75,3 +75,6 @@ After completing the setup:
 - The language server should automatically activate
 - Features like syntax highlighting, hover, autocomplete, and navigation will be available
 
+![](images/examp1.png)
+
+![](images/examp2.png)
