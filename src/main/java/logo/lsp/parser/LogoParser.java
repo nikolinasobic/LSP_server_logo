@@ -250,7 +250,12 @@ public class LogoParser {
         }
         final var varNameToken = advance();
         final var varName      = varNameToken.value.toLowerCase();
-        variableDefinitions.putIfAbsent(varName, varNameToken);
+
+        final Token defToken = varNameToken.type == TokenType.STRING
+                ? new Token(TokenType.IDENTIFIER, varNameToken.value,
+                            varNameToken.line, varNameToken.startCol + 1, varNameToken.endCol)
+                : varNameToken;
+        variableDefinitions.putIfAbsent(varName, defToken);
         final var value = parseExpr();
         return new Node.MakeStatement(makeToken, varName, value);
     }

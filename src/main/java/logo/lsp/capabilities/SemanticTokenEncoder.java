@@ -23,9 +23,19 @@ public class SemanticTokenEncoder {
         final var data = new ArrayList<Integer>();
         int prevLine = 0;
         int prevCol  = 0;
+        TokenType prevSignificantType = null;
 
         for (final Token tok : tokens) {
-            final int typeIdx = mapTokenType(tok.type);
+            // "varname immediately after MAKE is a variable name, not a string literal
+            final int typeIdx = (tok.type == TokenType.STRING && prevSignificantType == TokenType.MAKE)
+                    ? VARIABLE
+                    : mapTokenType(tok.type);
+
+            // track the last non-whitespace token so the MAKE check above spans any newlines
+            if (tok.type != TokenType.NEWLINE && tok.type != TokenType.EOF) {
+                prevSignificantType = tok.type;
+            }
+
             if (typeIdx < 0) continue;
 
             final int length = tok.endCol - tok.startCol;
