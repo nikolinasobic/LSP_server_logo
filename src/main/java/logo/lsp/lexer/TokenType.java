@@ -38,7 +38,6 @@ public enum TokenType {
     RBRACKET,
     COLON,          // before variable names
     PLUS,
-    MINUS_OP,
     STAR,
     SLASH,
     LESS,

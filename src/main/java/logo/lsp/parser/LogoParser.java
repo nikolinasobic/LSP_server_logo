@@ -19,8 +19,9 @@ public class LogoParser {
     private static final String ERR_UNEXPECTED_EXPR_TOKEN_FMT  = "Unexpected token '%s' in expression";
 
     // Fixed error messages
-    private static final String ERR_EXPECTED_PROC_NAME     = "Expected procedure name after TO";
-    private static final String ERR_EXPECTED_VAR_NAME_MAKE = "Expected variable name after MAKE";
+    private static final String ERR_EXPECTED_PROC_NAME      = "Expected procedure name after TO";
+    private static final String ERR_EXPECTED_VAR_NAME_MAKE  = "Expected variable name after MAKE";
+    private static final String ERR_EXPECTED_VAR_NAME_LOCAL = "Expected variable name after LOCAL";
     private static final String ERR_EXPECTED_LBRACKET_FOR  = "Expected '[' after FOR";
     private static final String ERR_EXPECTED_VAR_NAME_FOR  = "Expected variable name in FOR header";
     private static final String ERR_EXPECTED_RBRACKET_FOR  = "Expected ']' to close FOR header";
@@ -86,15 +87,20 @@ public class LogoParser {
         final Token t = peek();
 
         return switch (t.type) {
-            case TO      -> parseProcedureDef();
-            case MAKE    -> parseMake();
-            case REPEAT  -> parseRepeat();
-            case FOREVER -> parseForever();
-            case IF      -> parseIf(false);
-            case IFELSE  -> parseIf(true);
-            case FOR     -> parseFor();
-            case OUTPUT  -> parseOutput();
-            case STOP    -> parseStop();
+            case TO           -> parseProcedureDef();
+            case MAKE         -> parseMake();
+            case LOCAL        -> parseLocal();
+            case REPEAT       -> parseRepeat();
+            case FOREVER      -> parseForever();
+            case WHILE, UNTIL -> parseWhile();
+            case IF           -> parseIf(false);
+            case IFELSE       -> parseIf(true);
+            case TEST         -> parseTest();
+            case IFTRUE       -> parseIfTrueOrFalse(false);
+            case IFFALSE      -> parseIfTrueOrFalse(true);
+            case FOR          -> parseFor();
+            case OUTPUT       -> parseOutput();
+            case STOP         -> parseStop();
             case NEWLINE -> { skipNewlines(); yield null; }
             case EOF     -> null;
 
@@ -323,6 +329,50 @@ public class LogoParser {
         return new Node.OutputStatement(t, null);
     }
 
+    // WHILE cond [body]  /  UNTIL cond [body]
+
+    private Node parseWhile() {
+        final var token     = advance();
+        final var condition = parseExpr();
+        final var body      = parseBlock();
+        return new Node.IfStatement(token, condition, body, Collections.emptyList());
+    }
+
+    // TEST cond
+
+    private Node parseTest() {
+        final var token     = advance();
+        final var condition = parseExpr();
+        return new Node.CommandCall(token, List.of(condition));
+    }
+
+    // IFTRUE [body]  /  IFFALSE [body]
+
+    private Node parseIfTrueOrFalse(final boolean isFalse) {
+        final var token    = advance();
+        final var body     = parseBlock();
+        final var condTok  = new Token(TokenType.BOOLEAN, isFalse ? "false" : "true",
+                token.line, token.startCol, token.endCol);
+        return new Node.IfStatement(token, new Node.BooleanLiteral(condTok), body, Collections.emptyList());
+    }
+
+    // LOCAL "varname
+
+    private Node parseLocal() {
+        final var token = consume(TokenType.LOCAL);
+        if (!check(TokenType.STRING) && !check(TokenType.IDENTIFIER)) {
+            throw new ParseException(ParseError.error(ERR_EXPECTED_VAR_NAME_LOCAL, peek()));
+        }
+        final var varNameToken = advance();
+        final var varName      = varNameToken.value.toLowerCase();
+        final Token defToken   = varNameToken.type == TokenType.STRING
+                ? new Token(TokenType.IDENTIFIER, varNameToken.value,
+                            varNameToken.line, varNameToken.startCol + 1, varNameToken.endCol)
+                : varNameToken;
+        variableDefinitions.putIfAbsent(varName, defToken);
+        return new Node.CommandCall(token, Collections.emptyList());
+    }
+
     // arity table for built-in commands
 
     private int inferArity(final TokenType t) {
@@ -391,7 +441,7 @@ public class LogoParser {
 
     private Node parseAddSub() {
         Node left = parseMulDiv();
-        while (checkAny(TokenType.PLUS, TokenType.MINUS_OP)) {
+        while (checkAny(TokenType.PLUS, TokenType.MINUS)) {
             final var op    = advance();
             final var right = parseMulDiv();
             left = new Node.BinaryExpr(op, left, right);
@@ -410,7 +460,7 @@ public class LogoParser {
     }
 
     private Node parseUnary() {
-        if (checkAny(TokenType.MINUS_OP, TokenType.MINUS)) {
+        if (check(TokenType.MINUS)) {
             final var op = advance();
             return new Node.UnaryExpr(op, parseUnary());
         }
@@ -428,7 +478,7 @@ public class LogoParser {
                 final var lb    = advance();
                 final var elems = new ArrayList<Node>();
                 while (!atEnd() && !check(TokenType.RBRACKET)) {
-                    elems.add(parsePrimary());
+                    elems.add(parseExpr());
                     skipNewlines();
                 }
                 expect(TokenType.RBRACKET, ERR_EXPECTED_RBRACKET);

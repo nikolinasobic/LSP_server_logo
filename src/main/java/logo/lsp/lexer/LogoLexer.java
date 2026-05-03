@@ -188,7 +188,7 @@ public class LogoLexer {
                 emit(TokenType.LPAREN, TOK_LPAREN);
                 advance();
             } else if (c == ')') {
-                emit(TokenType.RBRACKET, TOK_RPAREN);
+                emit(TokenType.RPAREN, TOK_RPAREN);
                 advance();
             } else if (c == '+') {
                 emit(TokenType.PLUS, TOK_PLUS);
