@@ -12,8 +12,6 @@ public abstract class Node {
     }
 
     public static class Program extends Node {
-        private static final String TO_STRING_FMT = "Program{statements=%s}";
-
         public final List<Node> statements;
 
         public Program(final List<Node> statements, final Token token) {
@@ -23,7 +21,7 @@ public abstract class Node {
 
         @Override
         public String toString() {
-            return String.format(TO_STRING_FMT, statements);
+            return String.format("Program{statements=%s}", statements);
         }
     }
 
@@ -122,17 +120,6 @@ public abstract class Node {
             this.end     = end;
             this.step    = step;
             this.body    = body;
-        }
-    }
-
-    // OUTPUT expr / STOP
-
-    public static class OutputStatement extends Node {
-        public final Node value;  // null for STOP
-
-        public OutputStatement(final Token token, final Node value) {
-            super(token);
-            this.value = value;
         }
     }
 

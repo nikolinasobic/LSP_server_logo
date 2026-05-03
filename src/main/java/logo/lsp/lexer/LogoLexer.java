@@ -39,11 +39,9 @@ public class LogoLexer {
         KEYWORDS.put("setx",         TokenType.SETX);
         KEYWORDS.put("sety",         TokenType.SETY);
         KEYWORDS.put("setxy",        TokenType.SETXY);
-        KEYWORDS.put("setpos",       TokenType.SETPOS);
         KEYWORDS.put("setheading",   TokenType.SETHEADING);
         KEYWORDS.put("seth",         TokenType.SETHEADING);
         KEYWORDS.put("sh",           TokenType.SETHEADING);
-        KEYWORDS.put("setspeed",     TokenType.SETSPEED);
         KEYWORDS.put("home",         TokenType.HOME);
         KEYWORDS.put("arc",          TokenType.ARC);
         KEYWORDS.put("ellipse",      TokenType.ELLIPSE);
@@ -75,10 +73,8 @@ public class LogoLexer {
         KEYWORDS.put("pd",           TokenType.PENDOWN);
         KEYWORDS.put("pencolor",     TokenType.PENCOLOR);
         KEYWORDS.put("pc",           TokenType.PENCOLOR);
-        KEYWORDS.put("setpencolor",  TokenType.SETPENCOLOR);
-        KEYWORDS.put("setcolor",     TokenType.SETPENCOLOR);
-        KEYWORDS.put("setpensize",   TokenType.SETPENSIZE);
-        KEYWORDS.put("setwidth",     TokenType.SETPENSIZE);
+        KEYWORDS.put("setcolor",     TokenType.SETCOLOR);
+        KEYWORDS.put("setwidth",     TokenType.SETWIDTH);
         KEYWORDS.put("fill",         TokenType.FILL);
         KEYWORDS.put("filled",       TokenType.FILLED);
         KEYWORDS.put("label",        TokenType.LABEL);
@@ -108,7 +104,6 @@ public class LogoLexer {
         KEYWORDS.put("print",        TokenType.PRINT);
         KEYWORDS.put("pr",           TokenType.PRINT);
         KEYWORDS.put("show",         TokenType.SHOW);
-        KEYWORDS.put("type",         TokenType.TYPE);
         KEYWORDS.put("readword",     TokenType.READWORD);
         KEYWORDS.put("readlist",     TokenType.READLIST);
 
@@ -121,7 +116,6 @@ public class LogoLexer {
         KEYWORDS.put("iffalse",      TokenType.IFFALSE);
         KEYWORDS.put("iff",          TokenType.IFFALSE);
         KEYWORDS.put("repeat",       TokenType.REPEAT);
-        KEYWORDS.put("forever",      TokenType.FOREVER);
         KEYWORDS.put("while",        TokenType.WHILE);
         KEYWORDS.put("until",        TokenType.UNTIL);
         KEYWORDS.put("for",          TokenType.FOR);
@@ -135,13 +129,9 @@ public class LogoLexer {
         // procedure definition
         KEYWORDS.put("to",           TokenType.TO);
         KEYWORDS.put("end",          TokenType.END);
-        KEYWORDS.put("output",       TokenType.OUTPUT);
-        KEYWORDS.put("op",           TokenType.OUTPUT);
-        KEYWORDS.put("stop",         TokenType.STOP);
+
         KEYWORDS.put("define",       TokenType.DEFINE);
         KEYWORDS.put("def",          TokenType.DEF);
-        KEYWORDS.put("run",          TokenType.RUN);
-        KEYWORDS.put("apply",        TokenType.APPLY);
 
         // list
         KEYWORDS.put("list",         TokenType.LIST);
@@ -152,42 +142,20 @@ public class LogoLexer {
         KEYWORDS.put("butlast",      TokenType.BUTLAST);
         KEYWORDS.put("bl",           TokenType.BUTLAST);
         KEYWORDS.put("item",         TokenType.ITEM);
-        KEYWORDS.put("count",        TokenType.COUNT);
-        KEYWORDS.put("sentence",     TokenType.SENTENCE);
-        KEYWORDS.put("se",           TokenType.SENTENCE);
-        KEYWORDS.put("fput",         TokenType.FPUT);
-        KEYWORDS.put("lput",         TokenType.LPUT);
         KEYWORDS.put("pick",         TokenType.PICK);
-
-        // logic
-        KEYWORDS.put("and",          TokenType.AND);
-        KEYWORDS.put("or",           TokenType.OR);
-        KEYWORDS.put("not",          TokenType.NOT);
 
         // arithmetic
         KEYWORDS.put("sum",          TokenType.SUM);
-        KEYWORDS.put("difference",   TokenType.DIFFERENCE);
-        KEYWORDS.put("product",      TokenType.PRODUCT);
-        KEYWORDS.put("quotient",     TokenType.QUOTIENT);
-        KEYWORDS.put("remainder",    TokenType.REMAINDER);
         KEYWORDS.put("modulo",       TokenType.MODULO);
         KEYWORDS.put("power",        TokenType.POWER);
-        KEYWORDS.put("sqrt",         TokenType.SQRT);
-        KEYWORDS.put("abs",          TokenType.ABS);
-        KEYWORDS.put("minus",        TokenType.DIFFERENCE);
+        KEYWORDS.put("minus",        TokenType.KEYWORD_MINUS);
         KEYWORDS.put("random",       TokenType.RANDOM);
 
         // comparison
-        KEYWORDS.put("equalp",        TokenType.EQUALP);
-        KEYWORDS.put("equal?",        TokenType.EQUALP);
-        KEYWORDS.put("notequalp",     TokenType.NOTEQUALP);
-        KEYWORDS.put("notequal?",     TokenType.NOTEQUALP);
-        KEYWORDS.put("lessp",         TokenType.LESSP);
-        KEYWORDS.put("less?",         TokenType.LESSP);
-        KEYWORDS.put("greaterp",      TokenType.GREATERP);
-        KEYWORDS.put("greater?",      TokenType.GREATERP);
-        KEYWORDS.put("lessequalp",    TokenType.LESSEQUALP);
-        KEYWORDS.put("greaterequalp", TokenType.GREATEREQUALP);
+        KEYWORDS.put("equalp",       TokenType.EQUALP);
+        KEYWORDS.put("equal?",       TokenType.EQUALP);
+        KEYWORDS.put("notequalp",    TokenType.NOTEQUALP);
+        KEYWORDS.put("notequal?",    TokenType.NOTEQUALP);
 
         // predicates
         KEYWORDS.put("wordp",        TokenType.WORDP);

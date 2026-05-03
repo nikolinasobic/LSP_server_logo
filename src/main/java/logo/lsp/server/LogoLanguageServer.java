@@ -52,6 +52,7 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
         caps.setDefinitionProvider(true);
         caps.setHoverProvider(true);
         caps.setSemanticTokensProvider(SEMANTIC_TOKEN_OPTS);
+        caps.setCompletionProvider(new CompletionOptions(false, List.of()));
         final var result = new InitializeResult(caps);
         result.setServerInfo(SERVER_INFO);
         return CompletableFuture.completedFuture(result);
